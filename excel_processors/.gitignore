@@ -1,0 +1,21 @@
+# Ignore Excel temporary files
+~$*.xlsx
+~$*.xls
+
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore virtual environment
+venv/
+env/
+.env/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS specific files
+.DS_Store
+Thumbs.db
