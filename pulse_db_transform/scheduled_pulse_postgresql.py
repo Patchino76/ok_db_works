@@ -1,15 +1,14 @@
 import threading
 import time
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pulse_to_postgresql import PulseDBTransformer
 
 def run_hourly():
-    """Run pulse DB transformation every hour in a separate thread"""
+    """Run pulse DB transformation every hour (3600 seconds) in a separate thread"""
     while True:
-        # Wait until the next hour
-        now = datetime.now()
-        print(f"\nRunning scheduled transformation at {now}")
+        start_time = datetime.now()
+        print(f"\nRunning scheduled transformation at {start_time}")
         
         # Transform and append data
         try:
@@ -26,10 +25,11 @@ def run_hourly():
         except Exception as e:
             print(f"Error appending data: {e}")
         
-        # Wait until the next hour
-        now = datetime.now()
-        seconds_to_next_hour = 3600 - (now.minute * 60 + now.second)
-        time.sleep(seconds_to_next_hour)
+        # Calculate time to wait until exactly one hour has passed since start_time
+        elapsed_seconds = (datetime.now() - start_time).total_seconds()
+        seconds_to_wait = max(0, 3600 - elapsed_seconds)  # 3600 seconds = 1 hour
+        print(f"Next execution scheduled in {seconds_to_wait:.1f} seconds (at {(start_time + timedelta(seconds=3600)).strftime('%H:%M:%S')})")
+        time.sleep(seconds_to_wait)
 
 # PostgreSQL connection parameters
 pg_host = 'em-m-db4.ellatzite-med.com'  # PostgreSQL server host
