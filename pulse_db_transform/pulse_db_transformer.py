@@ -14,9 +14,9 @@ class PulseDBTransformer:
         self.engine = create_engine("mssql+pyodbc:///?odbc_connect=" + self.connection_string)
         
         # Mill names and sensor tags
-        # self.mills = ['Mill01', 'Mill02', 'Mill03', 'Mill04', 'Mill05', 'Mill06',
-        #              'Mill07', 'Mill08', 'Mill09', 'Mill10', 'Mill11', 'Mill12']
-        self.mills = ['Mill01']
+        self.mills = ['Mill01', 'Mill02', 'Mill03', 'Mill04', 'Mill05', 'Mill06',
+                     'Mill07', 'Mill08', 'Mill09', 'Mill10', 'Mill11', 'Mill12']
+        # self.mills = ['Mill01']
         
         # SQL tags dictionary from SQL_Data_Pulse_9.py
         self.sql_tags = {
@@ -64,16 +64,8 @@ class PulseDBTransformer:
         }
         
         # Table names from SQL Server
-        # self.table_names =   ['LoggerValues', ]
-        self.table_names =   ['LoggerValues', 
-                        'LoggerValues_Archive_Jan2025', 'LoggerValues_Archive_Dec2024', 
-                        'LoggerValues_Archive_Nov2024', 'LoggerValues_Archive_Oct2024',
-                        'LoggerValues_Archive_Sep2024', 'LoggerValues_Archive_Aug2024',
-                        'LoggerValues_Archive_Jul2024', 'LoggerValues_Archive_Jun2024',
-                        'LoggerValues_Archive_May2024', 'LoggerValues_Archive_Apr2024',  
-                        'LoggerValues_Archive_Mar2024', 'LoggerValues_Archive_Feb2024',
-                        'LoggerValues_Archive_Jan2024',
-        ]
+        self.table_names =   ['LoggerValues', ]
+
         # self.table_names =   ['LoggerValues', 
         #         'LoggerValues_Archive_Jan2025', 'LoggerValues_Archive_Dec2024', 
         #         'LoggerValues_Archive_Nov2024', 'LoggerValues_Archive_Oct2024',
