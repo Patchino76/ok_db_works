@@ -84,9 +84,9 @@ class ExcelToPGConverter:
             # Start a transaction
             conn.autocommit = False
             
-            # Drop the table if it exists
+            # Drop the table if it exists (with schema)
             print("Dropping existing ore_quality table if exists...")
-            cursor.execute("DROP TABLE IF EXISTS ore_quality CASCADE;")
+            cursor.execute("DROP TABLE IF EXISTS mills.ore_quality CASCADE;")
             conn.commit()
             print("Table dropped successfully")
             
@@ -116,9 +116,9 @@ class ExcelToPGConverter:
             # Always add created_at column
             columns.append("created_at TIMESTAMP DEFAULT NOW()")
             
-            # Create the table
+            # Create the table in the mills schema
             create_table_query = f"""
-            CREATE TABLE ore_quality (
+            CREATE TABLE mills.ore_quality (
                 {', '.join(columns)}
             );
             """
@@ -434,10 +434,10 @@ class ExcelToPGConverter:
                 print("Error: No valid data tuples to insert")
                 return False
                 
-            # Execute batch insert
+            # Execute batch insert into mills schema
             cursor = conn.cursor()
             insert_query = """
-            INSERT INTO ore_quality (date, shift, timestamp, class_15, class_12, grano, daiki, shisti, original_sheet)
+            INSERT INTO mills.ore_quality (date, shift, timestamp, class_15, class_12, grano, daiki, shisti, original_sheet)
             VALUES %s
             """
             
