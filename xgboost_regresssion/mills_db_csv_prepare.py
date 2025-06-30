@@ -22,10 +22,7 @@ def load_tables_to_dataframes():
     df_mill_08 = pd.read_sql_table('MILL_08', con=engine, schema='mills', index_col='TimeStamp')
     print(f"Loaded mill_08 table with {len(df_mill_08)} rows")
     
-    try:
-        df_ore_quality = pd.read_sql_table('ore_quality', con=engine, schema='mills')
-    except:
-        df_ore_quality = pd.read_sql_query("SELECT * FROM mills.ore_quality", engine)
+    df_ore_quality = pd.read_sql_table('ore_quality', con=engine, schema='mills')
     
     print(f"Loaded ore_quality table with {len(df_ore_quality)} rows from mills.ore_quality")
     
@@ -64,23 +61,6 @@ def process_dataframe(df, start_date, end_date, resample_freq='1min'):
     return df_processed
 
 
-def ensure_consistent_dataframes(dfs, start_date, end_date, freq='1min'):
-
-    # Create a common date range
-    common_index = pd.date_range(start=start_date, end=end_date, freq=freq)
-    print(f"Created common date range with {len(common_index)} points from {common_index.min()} to {common_index.max()}")
-    
-    aligned_dfs = []
-    for df in dfs:
-        if df is not None and not df.empty:
-            # Reindex the DataFrame to the common index
-            aligned_df = df.reindex(common_index)
-            aligned_dfs.append(aligned_df)
-        else:
-            aligned_dfs.append(None)
-    
-    return aligned_dfs
-
 def join_dataframes_on_timestamp(df1, df2):
 
     # Verify both dataframes have the same index
@@ -111,8 +91,8 @@ def main():
         print(f"ore_quality: {df_ore_quality.shape}")
         
         # Get the current time for end date
-        start_time = pd.Timestamp('2025-06-01 00:00:00').tz_localize(None)
-        current_time = pd.Timestamp('2025-06-29 00:00:00').tz_localize(None)
+        start_time = pd.Timestamp('2025-05-31 06:00:00').tz_localize(None)
+        current_time = pd.Timestamp('2025-06-29 06:00:00').tz_localize(None)
         
         print(f"Using date range: {start_time} to {current_time}")
         
@@ -142,18 +122,13 @@ def main():
         )
         
         print("\nProcessing ore_quality...")
-        if 'date' in df_ore_quality.columns:
-            # If ore_quality has a 'date' column, set it as the index first
-            df_ore_quality['date'] = pd.to_datetime(df_ore_quality['date'])
-            df_ore_quality.set_index('date', inplace=True)
-        
         processed_ore_quality = process_dataframe(
             df_ore_quality,
             start_date=start_time,
             end_date=current_time,
             resample_freq='1min'  # Using a different frequency for ore_quality as it might have a different time granularity
         )
-        
+                
         # Print shape of processed DataFrames before alignment
         print(f"\nDataFrame shapes after initial processing:")
         if processed_mill_06 is not None:
@@ -167,14 +142,14 @@ def main():
         
         # Ensure all DataFrames have the same length and aligned indices
         print("\nAligning DataFrames to ensure consistent indices...")
-        aligned_dfs = ensure_consistent_dataframes(
-            [processed_mill_06, processed_mill_07, processed_mill_08, processed_ore_quality],
-            start_time,
-            current_time,
-            '1min'
-        )
+        # aligned_dfs = ensure_consistent_dataframes(
+        #     [processed_mill_06, processed_mill_07, processed_mill_08, processed_ore_quality],
+        #     start_time,
+        #     current_time,
+        #     '1min'
+        # )
         
-        processed_mill_06, processed_mill_07, processed_mill_08, processed_ore_quality = aligned_dfs
+        # processed_mill_06, processed_mill_07, processed_mill_08, processed_ore_quality = aligned_dfs
         
         # Print shape of final aligned DataFrames
         print(f"\nDataFrame shapes after alignment:")
@@ -187,14 +162,20 @@ def main():
             print(f"aligned_mill_08: {processed_mill_08.shape}")
         if processed_ore_quality is not None:
             # print(processed_ore_quality.info())
-            processed_ore_quality = processed_ore_quality[['class_12', 'grano', 'daiki', 'shisti']]
+            processed_ore_quality = processed_ore_quality[['Class_12', 'Grano', 'Daiki', 'Shisti']]
             # print(processed_ore_quality.head())
             print(f"aligned_ore_quality: {processed_ore_quality.shape}")
             processed_ore_quality.to_csv('processed_ore_quality.csv', index=True)
-            plot_data(processed_ore_quality['shisti'], processed_ore_quality['grano'])
+            plot_data(processed_ore_quality['Shisti'], processed_ore_quality['Grano'])
         
         mills_and_ore_quality = join_dataframes_on_timestamp(processed_mill_06, processed_ore_quality)
-        mills_and_ore_quality.to_csv('mills_and_ore_quality.csv', index=True)
+        mills_and_ore_quality.to_csv('mill_ore_quality_06.csv', index=True)
+
+        mills_and_ore_quality = join_dataframes_on_timestamp(processed_mill_07, processed_ore_quality)
+        mills_and_ore_quality.to_csv('mill_ore_quality_07.csv', index=True)
+
+        mills_and_ore_quality = join_dataframes_on_timestamp(processed_mill_08, processed_ore_quality)
+        mills_and_ore_quality.to_csv('mill_ore_quality_08.csv', index=True)
 
 if __name__ == "__main__":
     main()

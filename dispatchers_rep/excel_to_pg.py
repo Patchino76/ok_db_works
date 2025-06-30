@@ -95,26 +95,30 @@ class ExcelToPGConverter:
             
             # Build the create table SQL dynamically based on DataFrame columns
             columns = []
-            columns.append("id SERIAL PRIMARY KEY")
-            columns.append("date DATE NOT NULL")
-            columns.append("shift INTEGER NOT NULL")
-            columns.append("timestamp TIMESTAMP NOT NULL")  # Always include timestamp
+            columns.append('"id" SERIAL PRIMARY KEY')
+            columns.append('"Date" DATE NOT NULL')
+            columns.append('"Shift" INTEGER NOT NULL')
+            columns.append('"TimeStamp" TIMESTAMP NOT NULL')  # Always include timestamp with quotes to preserve case
             
             # Map DataFrame columns to PostgreSQL data types
             df_columns = list(df.columns)
             for col in df_columns:
                 # Skip date and shift as they're already added
-                if col in ['date', 'shift', 'timestamp']:
+                if col.lower() in ['date', 'shift', 'timestamp']:
                     continue
                     
                 # Add other columns as NUMERIC (for ore quality data) or VARCHAR (for text)
                 if col in ['class_15', 'class_12', 'grano', 'daiki', 'shisti']:
-                    columns.append(f"{col} NUMERIC")
+                    # Capitalize column names for consistency
+                    cap_col = col.capitalize() if col != 'class_15' and col != 'class_12' else col.replace('class_', 'Class_')
+                    columns.append(f'"{cap_col}" NUMERIC')
                 else:
-                    columns.append(f"{col} VARCHAR(100)")  # Default for other columns
+                    # Capitalize other column names
+                    cap_col = col.capitalize() if col != 'original_sheet' else 'Original_Sheet'
+                    columns.append(f'"{cap_col}" VARCHAR(100)')  # Default for other columns
             
             # Always add created_at column
-            columns.append("created_at TIMESTAMP DEFAULT NOW()")
+            columns.append('"Created_At" TIMESTAMP DEFAULT NOW()')
             
             # Create the table in the mills schema
             create_table_query = f"""
@@ -295,9 +299,9 @@ class ExcelToPGConverter:
                 row_data = {
                     'date': date_str,
                     'shift': shift,
-                    'timestamp': timestamp,
+                    'TimeStamp': timestamp,
                     'original_sheet': sheet_name
-                }
+                }  # Keep lowercase for DataFrame column names
                     
                 # Add target column values
                 for col_name, original_col in target_columns.items():
@@ -341,7 +345,7 @@ class ExcelToPGConverter:
         result_df.sort_values(['date', 'shift'], inplace=True)
         
         # Ensure columns are in the correct order for PostgreSQL insert
-        required_column_order = ['date', 'shift', 'timestamp', 'class_15', 'class_12', 'grano', 'daiki', 'shisti', 'original_sheet']
+        required_column_order = ['date', 'shift', 'TimeStamp', 'class_15', 'class_12', 'grano', 'daiki', 'shisti', 'original_sheet']  # Keep lowercase for DataFrame column checks
         
         # Check if all required columns exist
         missing_columns = [col for col in required_column_order if col not in result_df.columns]
@@ -379,7 +383,7 @@ class ExcelToPGConverter:
             return False
 
         # Check that all required columns exist
-        required_columns = ['date', 'shift', 'timestamp', 'class_15', 'class_12', 'grano', 'daiki', 'shisti']
+        required_columns = ['date', 'shift', 'TimeStamp', 'class_15', 'class_12', 'grano', 'daiki', 'shisti']  # Keep lowercase for DataFrame column checks
         missing_columns = [col for col in required_columns if col not in df.columns]
         if missing_columns:
             print(f"Error: Missing required columns in DataFrame: {missing_columns}")
@@ -414,7 +418,7 @@ class ExcelToPGConverter:
                     data_tuple = (
                         date_obj,                           # date
                         int(row['shift']),                  # shift
-                        datetime.strptime(row['timestamp'], '%Y-%m-%d %H:%M:%S'),  # timestamp
+                        datetime.strptime(row['TimeStamp'], '%Y-%m-%d %H:%M:%S'),  # timestamp
                         class_15,                          # class_15
                         class_12,                          # class_12
                         grano,                             # grano
@@ -437,7 +441,7 @@ class ExcelToPGConverter:
             # Execute batch insert into mills schema
             cursor = conn.cursor()
             insert_query = """
-            INSERT INTO mills.ore_quality (date, shift, timestamp, class_15, class_12, grano, daiki, shisti, original_sheet)
+            INSERT INTO mills.ore_quality ("Date", "Shift", "TimeStamp", "Class_15", "Class_12", "Grano", "Daiki", "Shisti", "Original_Sheet")
             VALUES %s
             """
             
