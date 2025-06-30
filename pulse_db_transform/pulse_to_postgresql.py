@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine, text
 import pyodbc
-# import psycopg2
+# import  
 import sys
 import os
 from sqlalchemy.exc import SQLAlchemyError

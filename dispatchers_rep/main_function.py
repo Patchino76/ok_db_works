@@ -21,11 +21,11 @@ def main():
     # If input file not provided via command line, use default paths
     if not input_file:
         # First check if file exists in current directory
-        if os.path.exists('report.xlsx'):
-            input_file = 'report.xlsx'
+        if os.path.exists('Doklad_Dispecheri_2025.xlsx'):
+            input_file = 'Doklad_Dispecheri_2025.xlsx'
         # Then check in dispatchers_rep subdirectory
-        elif os.path.exists(os.path.join('dispatchers_rep', 'report.xlsx')):
-            input_file = os.path.join('dispatchers_rep', 'report.xlsx')
+        elif os.path.exists(os.path.join('dispatchers_rep', 'Doklad_Dispecheri_2025.xlsx')):
+            input_file = os.path.join('dispatchers_rep', 'Doklad_Dispecheri_2025.xlsx')
         # Check for filename with year pattern
         elif os.path.exists('Doklad_Dispecheri_2024.xlsx'):
             input_file = 'Doklad_Dispecheri_2024.xlsx'
