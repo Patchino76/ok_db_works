@@ -18,7 +18,7 @@ import xgboost as xgb
 #%% Load and explore data
 # Load the mill data
 print("Loading data...")
-csv_path = r'c:\Projects\ok_db_works\mill_ore_quality_06.csv'
+csv_path = r'c:\Projects\ok_db_works\mill_ore_quality_08.csv'
 df = pd.read_csv(csv_path, index_col=0, parse_dates=True)
 print(f"Loaded data with shape: {df.shape}")
 
@@ -31,6 +31,109 @@ print(df.head())
 
 print("\nBasic statistics:")
 print(df.describe())
+
+#%% Define smoothing functions
+# Three different approaches to smooth time series data
+
+def smooth_rolling_mean(dataframe, window_size=5, min_periods=1):
+    """
+    Apply rolling mean smoothing to all numeric columns in the dataframe.
+    
+    Args:
+        dataframe: Input DataFrame with time series data
+        window_size: Size of the rolling window (default: 5)
+        min_periods: Minimum number of observations required (default: 1)
+        
+    Returns:
+        DataFrame with smoothed values
+    """
+    df_smooth = dataframe.copy()
+    numeric_cols = df_smooth.select_dtypes(include=['number']).columns
+    
+    # Apply rolling mean with centered window
+    for col in numeric_cols:
+        df_smooth[col] = df_smooth[col].rolling(
+            window=window_size, 
+            min_periods=min_periods, 
+            center=True
+        ).mean()
+    
+    # Fill any NaN values at edges
+    df_smooth = df_smooth.fillna(method='ffill').fillna(method='bfill')
+    
+    print(f"Applied rolling mean smoothing with window size {window_size}")
+    return df_smooth
+
+def smooth_ewm(dataframe, span=5, min_periods=1):
+    """
+    Apply exponentially weighted moving average smoothing to all numeric columns.
+    This gives more weight to recent observations.
+    
+    Args:
+        dataframe: Input DataFrame with time series data
+        span: Specify decay in terms of span (default: 5)
+        min_periods: Minimum number of observations required (default: 1)
+        
+    Returns:
+        DataFrame with smoothed values
+    """
+    df_smooth = dataframe.copy()
+    numeric_cols = df_smooth.select_dtypes(include=['number']).columns
+    
+    # Apply EWM smoothing
+    for col in numeric_cols:
+        df_smooth[col] = df_smooth[col].ewm(
+            span=span, 
+            min_periods=min_periods, 
+            adjust=True
+        ).mean()
+    
+    print(f"Applied exponentially weighted moving average smoothing with span {span}")
+    return df_smooth
+
+def smooth_savgol(dataframe, window_length=11, polyorder=2):
+    """
+    Apply Savitzky-Golay filter for smoothing.
+    This preserves features of the distribution such as peaks better than rolling averages.
+    
+    Args:
+        dataframe: Input DataFrame with time series data
+        window_length: Length of the filter window (must be odd number, default: 11)
+        polyorder: Order of the polynomial (default: 2)
+        
+    Returns:
+        DataFrame with smoothed values
+    """
+    from scipy.signal import savgol_filter
+    
+    df_smooth = dataframe.copy()
+    numeric_cols = df_smooth.select_dtypes(include=['number']).columns
+    
+    # Make sure window_length is odd
+    if window_length % 2 == 0:
+        window_length += 1
+    
+    # Apply Savitzky-Golay filter
+    for col in numeric_cols:
+        # Skip columns with NaN values
+        if df_smooth[col].isnull().sum() > 0:
+            continue
+            
+        df_smooth[col] = savgol_filter(
+            df_smooth[col].values, 
+            window_length=window_length, 
+            polyorder=polyorder
+        )
+    
+    print(f"Applied Savitzky-Golay filter with window length {window_length} and polynomial order {polyorder}")
+    return df_smooth
+
+# Choose one smoothing method to apply (uncomment the one you want to use)
+print("\nApplying data smoothing...")
+# df = smooth_rolling_mean(df, window_size=5)  # Option 1: Rolling mean
+# df = smooth_ewm(df, span=5)                 # Option 2: Exponential weighted moving average
+df = smooth_savgol(df, window_length=11)    # Option 3: Savitzky-Golay filter
+# print("No smoothing applied - uncomment one of the smoothing functions above to enable")
 
 #%% Define features and target
 # Specify the features and target variable
@@ -61,18 +164,53 @@ if data_clean.isnull().sum().sum() > 0:
     print(data_clean.isnull().sum())
 else:
     print("No missing values in the cleaned dataset")
+    
+# Filter data based on feature bounds
+print("\nFiltering data based on feature bounds:")
+print(f"Original data shape: {data_clean.shape}")
+
+# Apply filters for Ore and PSI80
+filtered_data = data_clean.copy()
+filtered_data = filtered_data[(filtered_data['Ore'] > 160) & 
+                             (filtered_data['Ore'] < 200) & 
+                             (filtered_data['PSI80'] < 55)]
+
+# Report on filtering results
+filtered_rows = len(data_clean) - len(filtered_data)
+print(f"Filtered out {filtered_rows} rows ({filtered_rows/len(data_clean):.2%} of data)")
+print(f"Remaining data shape: {filtered_data.shape}")
+print(f"Ore range: {filtered_data['Ore'].min():.2f} to {filtered_data['Ore'].max():.2f}")
+print(f"PSI80 range: {filtered_data['PSI80'].min():.2f} to {filtered_data['PSI80'].max():.2f}")
+
+# Use the filtered data for further processing
+data_clean = filtered_data
 
 # Split features and target
 X = data_clean[features]
 y = data_clean[target_col]
 
-# Train-test split
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+# Time series split - chronological without shuffling
+# For time series data, we should split by time rather than randomly
+# Use the last 20% of the data as the test set
 
-print(f"Training set: {X_train.shape[0]} samples")
-print(f"Test set: {X_test.shape[0]} samples")
+# Sort by index (timestamp) to ensure chronological order
+data_clean = data_clean.sort_index()
+X = data_clean[features]
+y = data_clean[target_col]
+
+# Calculate the split point at 80% of the data
+split_idx = int(len(X) * 0.8)
+
+# Split the data chronologically
+X_train = X.iloc[:split_idx]
+X_test = X.iloc[split_idx:]
+y_train = y.iloc[:split_idx]
+y_test = y.iloc[split_idx:]
+
+print(f"Training set: {X_train.shape[0]} samples (from {X_train.index.min()} to {X_train.index.max()})")
+print(f"Test set: {X_test.shape[0]} samples (from {X_test.index.min()} to {X_test.index.max()})")
+print(f"Using chronological split for time series data (no shuffling)")
+
 
 # Feature scaling
 scaler_X = StandardScaler()
