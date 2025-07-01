@@ -53,10 +53,17 @@ def process_dataframe(df, start_date, end_date, resample_freq='1min'):
     
     numeric_cols = df_processed.select_dtypes(include=['number']).columns.tolist()
     if numeric_cols:
-        df_processed = df_processed[numeric_cols].resample(resample_freq).mean()
-        print(f"Resampled DataFrame to {resample_freq} frequency, resulting in {len(df_processed)} rows")
+        # Resample and interpolate in one step for smoother transitions
+        df_processed = df_processed[numeric_cols].resample(resample_freq).mean().interpolate(method='linear')
+        print(f"Resampled DataFrame to {resample_freq} frequency with interpolation, resulting in {len(df_processed)} rows")
     
     df_processed = df_processed.interpolate().ffill().bfill()
+    
+    # Apply smoothing using rolling window
+    # Window size of 5 is a good starting point, can be adjusted as needed
+    window_size = 15
+    df_processed = df_processed.rolling(window=window_size, min_periods=1, center=True).mean()
+    print(f"Applied smoothing with rolling window of size {window_size}")
     
     return df_processed
 
