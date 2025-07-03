@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Union, Any
+from pydantic import BaseModel, Field, ConfigDict
+from typing import List, Dict, Optional, Union, Any, Annotated
 from datetime import datetime
 
 class DatabaseConfig(BaseModel):

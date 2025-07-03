@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 from bayes_opt import BayesianOptimization
-from bayes_opt.util import UtilityFunction
+# In version 3.0.1, the acquisition functions are directly imported from the package
+from bayes_opt import acquisition as bayes_acq
 import logging
 import json
 import os
@@ -172,7 +173,14 @@ class MillBayesianOptimizer:
             )
             
             # Set utility function
-            utility = UtilityFunction(kind=acq, kappa=kappa, xi=xi)
+            # In v3.0.1, acquisition functions are directly used instead of UtilityFunction
+            # Select the acquisition function based on the 'acq' parameter
+            if acq == 'ucb':
+                acquisition_function = bayes_acq.UCB(kappa=kappa)
+            elif acq == 'ei':
+                acquisition_function = bayes_acq.EI(xi=xi)
+            else:  # default to poi
+                acquisition_function = bayes_acq.POI(xi=xi)
             
             # Clear history
             self.optimization_history = []
@@ -182,14 +190,14 @@ class MillBayesianOptimizer:
             
             for i in range(init_points):
                 # Random exploration
-                next_point = self.optimizer.suggest(utility)
+                next_point = self.optimizer.suggest(acquisition_function)
                 target = self._black_box_function(**next_point)
                 self.optimizer.register(params=next_point, target=target)
                 logger.info(f"Exploration step {i+1}/{init_points}, target: {target:.4f}")
             
             for i in range(n_iter):
                 # Guided optimization
-                next_point = self.optimizer.suggest(utility)
+                next_point = self.optimizer.suggest(acquisition_function)
                 target = self._black_box_function(**next_point)
                 self.optimizer.register(params=next_point, target=target)
                 logger.info(f"Optimization step {i+1}/{n_iter}, target: {target:.4f}")

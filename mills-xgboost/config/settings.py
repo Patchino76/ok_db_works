@@ -1,5 +1,5 @@
 import os
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 from typing import Dict, Any
 
 class Settings(BaseSettings):

@@ -8,11 +8,11 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("../logs/database.log"),
         logging.StreamHandler()
     ]
 )
 
+# Create logger for this module
 logger = logging.getLogger(__name__)
 
 class MillsDataConnector:
