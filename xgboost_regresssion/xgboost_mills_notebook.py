@@ -18,7 +18,7 @@ import xgboost as xgb
 #%% Load and explore data
 # Load the mill data
 print("Loading data...")
-csv_path = r'c:\Projects\ok_db_works\mill_ore_quality_08.csv'
+csv_path = r'c:\Projects\ok_db_works\mill_ore_quality_06.csv'
 df = pd.read_csv(csv_path, index_col=0, parse_dates=True)
 print(f"Loaded data with shape: {df.shape}")
 
@@ -130,14 +130,14 @@ def smooth_savgol(dataframe, window_length=11, polyorder=2):
 
 # Choose one smoothing method to apply (uncomment the one you want to use)
 print("\nApplying data smoothing...")
-# df = smooth_rolling_mean(df, window_size=5)  # Option 1: Rolling mean
+df = smooth_rolling_mean(df, window_size=15)  # Option 1: Rolling mean
 # df = smooth_ewm(df, span=5)                 # Option 2: Exponential weighted moving average
-df = smooth_savgol(df, window_length=11)    # Option 3: Savitzky-Golay filter
+# df = smooth_savgol(df, window_length=11)    # Option 3: Savitzky-Golay filter
 # print("No smoothing applied - uncomment one of the smoothing functions above to enable")
 
 #%% Define features and target
 # Specify the features and target variable
-features = ['Ore', 'WaterMill', 'WaterZumpf', 'PressureHC', 'DensityHC', 'MotorAmp', 'Shisti']
+features = ['Ore', 'WaterMill', 'WaterZumpf', 'PressureHC', 'DensityHC', 'MotorAmp', 'Shisti', 'Daiki']
 target_col = 'PSI80'
 
 # Check if all required columns exist
