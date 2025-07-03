@@ -35,12 +35,12 @@ class Settings(BaseSettings):
                 "DensityHC", "MotorAmp", "Shisti", "Daiki"
             ],
             "default_bounds": {
-                "Ore": (160.0, 200.0),
-                "WaterMill": (120.0, 180.0),
-                "WaterZumpf": (40.0, 100.0),
-                "PressureHC": (20.0, 50.0),
-                "DensityHC": (1.5, 2.2),
-                "MotorAmp": (200.0, 300.0)
+                'Ore': (160.0, 200.0),
+                'WaterMill': (12.0, 18.0),
+                'WaterZumpf': (140.0, 240.0),
+                'PressureHC': (0.3, 0.5),
+                'DensityHC': (1500, 1800),
+                'MotorAmp': (170.0, 220.0)
             }
         },
         "FR200": {
@@ -49,12 +49,12 @@ class Settings(BaseSettings):
                 "DensityHC", "MotorAmp", "Shisti", "Daiki"
             ],
             "default_bounds": {
-                "Ore": (160.0, 200.0),
-                "WaterMill": (120.0, 180.0),
-                "WaterZumpf": (40.0, 100.0),
-                "PressureHC": (20.0, 50.0),
-                "DensityHC": (1.5, 2.2),
-                "MotorAmp": (200.0, 300.0)
+                'Ore': (160.0, 200.0),
+                'WaterMill': (12.0, 18.0),
+                'WaterZumpf': (140.0, 240.0),
+                'PressureHC': (0.3, 0.5),
+                'DensityHC': (1500, 1800),
+                'MotorAmp': (170.0, 220.0)
             }
         }
     }

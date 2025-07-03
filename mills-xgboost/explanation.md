@@ -5,6 +5,7 @@
 This document provides a comprehensive explanation of the Mills XGBoost System architecture, implementation details, and the relationships between components.
 
 The project implements a production-ready system for:
+
 1. Training XGBoost regression models to predict mill performance metrics (PSI80, FR200)
 2. Applying Bayesian optimization techniques to find optimal mill parameter settings
 3. Exposing these capabilities through a FastAPI web service
@@ -66,9 +67,11 @@ mills-xgboost/
 ### 1. Database Connector (`db_connector.py`)
 
 #### Purpose
+
 Connect to PostgreSQL database to retrieve mill sensor data and ore quality data, process the data, and join them on timestamps.
 
 #### Key Classes and Methods
+
 - **`MillsDataConnector`**: Main class for database connections and data retrieval.
   - `__init__(self, host, port, dbname, user, password)`: Initialize database connection parameters.
   - `connect(self)`: Create SQLAlchemy engine and connection.
@@ -80,6 +83,7 @@ Connect to PostgreSQL database to retrieve mill sensor data and ore quality data
   - `get_combined_data(self, mill_number, start_date, end_date, resample_freq='1min')`: Get completely processed data ready for modeling.
 
 #### Key Implementation Details
+
 - Uses SQLAlchemy for database connections
 - Handles case-sensitive column names from PostgreSQL
 - Implements data smoothing with rolling window averages
@@ -89,9 +93,11 @@ Connect to PostgreSQL database to retrieve mill sensor data and ore quality data
 ### 2. Data Processor (`data_processor.py`)
 
 #### Purpose
+
 Preprocess mill data for XGBoost modeling, including filtering, cleaning, scaling, and feature selection.
 
 #### Key Classes and Methods
+
 - **`DataProcessor`**: Encapsulates data preprocessing steps.
   - `preprocess(self, df, features, target_col)`: Main method to preprocess data.
   - `_filter_data(self, df, features, target_col)`: Filter data for required features and target.
@@ -100,6 +106,7 @@ Preprocess mill data for XGBoost modeling, including filtering, cleaning, scalin
   - `transform_new_data(self, df, scaler)`: Transform new data for prediction.
 
 #### Key Implementation Details
+
 - Uses scikit-learn's StandardScaler for feature scaling
 - Handles missing values and outliers
 - Provides methods for both training preprocessing and inference preprocessing
@@ -107,9 +114,11 @@ Preprocess mill data for XGBoost modeling, including filtering, cleaning, scalin
 ### 3. XGBoost Model (`xgboost_model.py`)
 
 #### Purpose
+
 Implement a production-ready XGBoost regression model for mill data with methods for training, prediction, evaluation, and model persistence.
 
 #### Key Classes and Methods
+
 - **`MillsXGBoostModel`**: Main class for XGBoost modeling.
   - `__init__(self, features=None, target_col='PSI80')`: Initialize model with features and target column.
   - `train(self, X_train, X_test, y_train, y_test, scaler=None, params=None)`: Train the model.
@@ -120,6 +129,7 @@ Implement a production-ready XGBoost regression model for mill data with methods
   - `get_feature_importance(self)`: Get and format feature importance.
 
 #### Key Implementation Details
+
 - Uses XGBoost's early stopping to prevent overfitting
 - Logs training metrics and feature importance without plots
 - Supports prediction from both DataFrame and dictionary inputs
@@ -129,9 +139,11 @@ Implement a production-ready XGBoost regression model for mill data with methods
 ### 4. Bayesian Optimization (`bayesian_opt.py`)
 
 #### Purpose
+
 Implement Bayesian optimization to tune mill parameters for optimal performance using a trained XGBoost model.
 
 #### Key Classes and Methods
+
 - **`MillBayesianOptimizer`**: Main class for Bayesian optimization.
   - `__init__(self, xgboost_model, target_col='PSI80', maximize=True)`: Initialize with model and objective.
   - `_black_box_function(self, **kwargs)`: Black box function that predicts outcome using XGBoost model.
@@ -143,6 +155,7 @@ Implement Bayesian optimization to tune mill parameters for optimal performance 
   - `recommend_parameters(self, n_recommendations=3)`: Get top N parameter recommendations.
 
 #### Key Implementation Details
+
 - Uses the bayesian-optimization library for Gaussian Process optimization
 - Supports both maximization and minimization objectives
 - Allows parameter bounds to be derived from data min/max values
@@ -153,11 +166,13 @@ Implement Bayesian optimization to tune mill parameters for optimal performance 
 ### 5. FastAPI Application (`main.py`, `endpoints.py`, `schemas.py`)
 
 #### Purpose
+
 Expose model training, prediction, and optimization capabilities through a RESTful API interface.
 
 #### Key Components
 
 **API Schemas (`schemas.py`)**
+
 - Defines Pydantic models for request/response validation:
   - `DatabaseConfig`: Database connection parameters
   - `TrainingParameters`: XGBoost training parameters
@@ -171,6 +186,7 @@ Expose model training, prediction, and optimization capabilities through a RESTf
   - `OptimizationResponse`: Optimization results response
 
 **API Endpoints (`endpoints.py`)**
+
 - Implements API endpoints:
   - `POST /train`: Train a new XGBoost model
   - `POST /predict`: Make predictions with a trained model
@@ -178,6 +194,7 @@ Expose model training, prediction, and optimization capabilities through a RESTf
   - `GET /models`: List all available models
 
 **FastAPI Application (`main.py`)**
+
 - Configures the FastAPI application:
   - CORS middleware for cross-origin requests
   - Request timing middleware
@@ -186,6 +203,7 @@ Expose model training, prediction, and optimization capabilities through a RESTf
   - Exception handlers for graceful error responses
 
 #### Key Implementation Details
+
 - Uses FastAPI for high-performance API with automatic schema validation
 - Implements in-memory model storage (can be replaced with database in production)
 - Provides detailed error handling and logging
@@ -194,9 +212,11 @@ Expose model training, prediction, and optimization capabilities through a RESTf
 ### 6. Configuration (`settings.py`)
 
 #### Purpose
+
 Manage application configuration settings.
 
 #### Key Components
+
 - **`Settings`** class with:
   - Application information
   - API settings
@@ -207,6 +227,7 @@ Manage application configuration settings.
   - Logging settings
 
 #### Key Implementation Details
+
 - Uses Pydantic for configuration validation
 - Supports environment variables override
 - Sets case_sensitive=True for proper handling of PostgreSQL case-sensitive columns
@@ -214,6 +235,7 @@ Manage application configuration settings.
 ### 7. Testing and Deployment
 
 **Test Script (`test_system.py`)**
+
 - Tests all components of the system:
   - Database connection and data retrieval
   - Model training
@@ -222,6 +244,7 @@ Manage application configuration settings.
 - Includes detailed logging of test progress
 
 **API Runner (`run_api.py`)**
+
 - Script to start the FastAPI server
 - Configures command-line arguments
 - Sets up logging
@@ -230,6 +253,7 @@ Manage application configuration settings.
 ## Data Flow and Integration
 
 ### Training Flow
+
 1. User sends a training request via the API
 2. API endpoint calls the database connector to fetch data
 3. Data processor prepares the data for modeling
@@ -238,6 +262,7 @@ Manage application configuration settings.
 6. Training results are returned via API
 
 ### Prediction Flow
+
 1. User sends a prediction request with model ID and input data
 2. API endpoint retrieves the model from storage
 3. Input data is transformed using the stored scaler
@@ -245,6 +270,7 @@ Manage application configuration settings.
 5. Results are returned via API
 
 ### Optimization Flow
+
 1. User sends an optimization request with model ID and parameter bounds
 2. API endpoint retrieves the model from storage
 3. Bayesian optimizer is initialized with the model as objective function
@@ -254,11 +280,13 @@ Manage application configuration settings.
 ## Design Decisions and Implementation Highlights
 
 ### 1. Modular Architecture
+
 - Separation of concerns between database access, data processing, modeling, optimization, and API
 - Each component has a clear responsibility and interface
 - Easy to maintain, test, and extend
 
 ### 2. Production Readiness
+
 - No extraneous plotting in production code
 - Comprehensive logging instead of plots
 - Proper error handling and validation
@@ -266,23 +294,27 @@ Manage application configuration settings.
 - Scalable directory structure
 
 ### 3. PostgreSQL Integration
+
 - Direct connection to PostgreSQL database
 - Proper handling of case-sensitive column names
 - Efficient data retrieval and processing
 - Joining mill sensor data with ore quality lab data
 
 ### 4. Model Persistence
+
 - Serialization of model, scaler, and metadata
 - Support for loading and saving models
 - Model version tracking
 
 ### 5. Parameter Optimization
+
 - Flexible Bayesian optimization framework
 - Support for parameter bounds and constraints
 - Multiple optimization strategies (maximize/minimize)
 - Parameter recommendations with predicted performance
 
 ### 6. API Design
+
 - RESTful API with clear endpoints
 - Proper request/response validation using Pydantic
 - Comprehensive error handling
@@ -293,6 +325,7 @@ Manage application configuration settings.
 The Mills XGBoost System is a comprehensive solution for mill performance prediction and parameter optimization. The modular architecture and clean separation of concerns make it easy to maintain and extend. The system is designed for production deployment with proper error handling, logging, and no extraneous plotting during production runs.
 
 The key highlights of the implementation are:
+
 1. Direct PostgreSQL integration with proper handling of case-sensitive columns
 2. Production-ready XGBoost modeling with comprehensive logging
 3. Flexible Bayesian optimization framework for parameter tuning
