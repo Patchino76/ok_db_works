@@ -156,12 +156,21 @@ Implement Bayesian optimization to tune mill parameters for optimal performance 
 
 #### Key Implementation Details
 
-- Uses the bayesian-optimization library for Gaussian Process optimization
+- Uses the bayesian-optimization library for Gaussian Process optimization (compatible with version 3.0.1)
 - Supports both maximization and minimization objectives
 - Allows parameter bounds to be derived from data min/max values
 - Supports parameter constraints (e.g., WaterMill ≥ 1.5 × WaterZumpf)
 - Records optimization history for analysis
 - Provides parameter recommendations with predicted performance
+
+#### Version Compatibility Notes
+
+- The implementation is updated to work with bayesian-optimization version 3.0.1
+- In v3.0.1, the acquisition functions API changed:
+  - Previously: `from bayes_opt.util import UtilityFunction` and then `utility = UtilityFunction(kind='ucb', kappa=2.5)`
+  - Now: `from bayes_opt import acquisition as bayes_acq` and then `acquisition_function = bayes_acq.UCB(kappa=2.5)`
+- The code conditionally creates the appropriate acquisition function object based on the selected method ('ucb', 'ei', or 'poi')
+- This ensures compatibility with the latest version while maintaining the same functionality
 
 ### 5. FastAPI Application (`main.py`, `endpoints.py`, `schemas.py`)
 
