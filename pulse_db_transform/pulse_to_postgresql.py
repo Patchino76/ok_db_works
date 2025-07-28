@@ -26,9 +26,9 @@ class PulseDBTransformer:
         self.pg_engine = create_engine(f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_dbname}")
         
         # Mill names and sensor tags
-        self.mills = ['Mill01', 'Mill02', 'Mill03', 'Mill04', 'Mill05', 'Mill06',
-                     'Mill07', 'Mill08', 'Mill09', 'Mill10', 'Mill11', 'Mill12']
-        # self.mills = ['Mill01']
+        # self.mills = ['Mill01', 'Mill02', 'Mill03', 'Mill04', 'Mill05', 'Mill06',
+        #              'Mill07', 'Mill08', 'Mill09', 'Mill10', 'Mill11', 'Mill12']
+        self.mills = ['Mill06', 'Mill07', 'Mill08']
         
         # SQL tags dictionary from SQL_Data_Pulse_9.py
         self.sql_tags = {
@@ -53,8 +53,10 @@ class PulseDBTransformer:
             'DensityHC': {"557" : "Mill01", "577" : "Mill02", "527" : "Mill03", "1224" : "Mill04", "1234" : "Mill05", "1216" : "Mill06",
                             "457" : "Mill07", "469" : "Mill08", "506" : "Mill09", "514" : "Mill10", "2658" : "Mill11", "3742" : "Mill12"},
             
-            'PulpHC': {"559" : "Mill01", "579" : "Mill02", "529" : "Mill03", "1226" : "Mill04", "1236" : "Mill05", "1218" : "Mill06",
-                            "3640" : "Mill07", "1000" : "Mill08", "508" : "Mill09", "516" : "Mill10", "2691" : "Mill11", "3788" : "Mill12"},
+            # 'PulpHC_old': {"559" : "Mill01", "579" : "Mill02", "529" : "Mill03", "1226" : "Mill04", "1236" : "Mill05", "1218" : "Mill06",
+            #                 "3640" : "Mill07", "1000" : "Mill08", "508" : "Mill09", "516" : "Mill10", "2691" : "Mill11", "3788" : "Mill12"},
+            'PulpHC': {"2386" : "Mill01", "2160" : "Mill02", "2609" : "Mill03", "2726" : "Mill04", "2217" : "Mill05", "2777" : "Mill06",
+                            "2837" : "Mill07", "1833" : "Mill08", "2485" : "Mill09", "2434" : "Mill10", "2670" : "Mill11", "3755" : "Mill12"},
 
             'PumpRPM': {"2405" : "Mill01", "2198" : "Mill02", "2629" : "Mill03", "2745" : "Mill04", "1652" : "Mill05", "2796" : "Mill06",
                             "2856" : "Mill07", "1800" : "Mill08", "2471" : "Mill09", "2452" : "Mill10", "2690" : "Mill11", "3780" : "Mill12"},
@@ -73,7 +75,7 @@ class PulseDBTransformer:
         }
         
         # Table names from SQL Server
-        self.table_names = ['LoggerValues', ]
+        self.table_names = ['LoggerValues', 'LoggerValues_Archive_Jun2025']
 
         # self.table_names = ['LoggerValues', 
         #         'LoggerValues_Archive_Jan2025', 'LoggerValues_Archive_Dec2024', 
