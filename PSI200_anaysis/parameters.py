@@ -114,21 +114,23 @@ parameter_icons = {
     "PSI200": "🎯"
 }
 
-# Parameter colors
+# Parameter colors - using standard matplotlib colors
 parameter_colors = {
-    "Ore": "amber",
-    "WaterMill": "blue",
-    "WaterZumpf": "cyan",
-    "PressureHC": "red",
-    "DensityHC": "purple",
-    "MotorAmp": "yellow",
-    "Shisti": "green",
-    "Daiki": "orange",
-    "PumpRPM": "indigo",
-    "Grano": "slate",
-    "Class_12": "rose",
-    "PSI80": "green",
-    "PSI200": "green"
+    "Ore": "#FF8C00",       # Dark orange
+    "WaterMill": "#1E90FF",  # Dodger blue
+    "WaterZumpf": "#00FFFF", # Cyan
+    "PressureHC": "#708090",      # Slate gray
+    "DensityHC": "#800080",  # Purple
+    "MotorAmp": "#FFD700",   # Gold
+    "Shisti": "#008000",     # Green
+    "Daiki": "#FFA500",      # Orange
+    "PumpRPM": "#4B0082",    # Indigo
+    "Grano": "#708090",      # Slate gray
+    "Class_12": "#FF1493",   # Deep pink
+    "Class_15": "#8A2BE2",   # Blue violet
+    "PSI80": "#228B22",      # Forest green
+    "PSI200": "#228B22",     # Forest green
+    "PulpHC": "#CD853F"      # Peru
 }
 
 # Helper function to get parameter info
