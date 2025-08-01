@@ -26,9 +26,9 @@ class PulseDBTransformer:
         self.pg_engine = create_engine(f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_dbname}")
         
         # Mill names and sensor tags
-        # self.mills = ['Mill01', 'Mill02', 'Mill03', 'Mill04', 'Mill05', 'Mill06',
-        #              'Mill07', 'Mill08', 'Mill09', 'Mill10', 'Mill11', 'Mill12']
-        self.mills = ['Mill06', 'Mill07', 'Mill08']
+        self.mills = ['Mill01', 'Mill02', 'Mill03', 'Mill04', 'Mill05', 'Mill06',
+                     'Mill07', 'Mill08', 'Mill09', 'Mill10', 'Mill11', 'Mill12']
+        # self.mills = ['Mill06', 'Mill07', 'Mill08', 'Mill09']
         
         # SQL tags dictionary from SQL_Data_Pulse_9.py
         self.sql_tags = {
@@ -89,127 +89,88 @@ class PulseDBTransformer:
         
         # Initialize timestamp filter to None (get all data)
         self.filter_timestamp = None
+        # Flag to indicate if we're creating a new table (removes time limitations)
+        self.creating_new_table = False
     
     def read_sql_table(self, table_name, feature):
         """Read data from SQL Server for a specific feature"""
-        tags = "LoggerTagID = " + " OR LoggerTagID = ".join(self.sql_tags[feature].keys())
-        mill_count = len(self.sql_tags[feature])
+        # Get current time in UTC
+        current_time = datetime.utcnow()
         
-        # Add timestamp filter if we're in append mode
-        timestamp_filter = ""
-        if hasattr(self, 'filter_timestamp') and self.filter_timestamp is not None:
-            since_str = self.filter_timestamp.strftime('%Y-%m-%d %H:%M:%S')
-            timestamp_filter = f" AND IndexTime > '{since_str}'"
-            print(f"  - [🕒] Filtering for data after: {since_str}")
+        # Get the tags we're interested in
+        tag_conditions = " OR ".join([f"LoggerTagID = {tag_id}" for tag_id in self.sql_tags[feature].keys()])
         
-        query_str = f'SELECT IndexTime, LoggerTagID, Value FROM {table_name} WHERE {tags}{timestamp_filter} ORDER BY IndexTime DESC'
+        # Build the WHERE clause
+        where_clauses = [f"({tag_conditions})"]
         
-        print(f"  - [🔍] Querying {table_name} for {feature} (expecting {mill_count} mills)...")
-        start_time = datetime.now()
+        # Only apply time filters if we're not creating a new table
+        if not self.creating_new_table:
+            # Add timestamp filter if we're in append mode
+            if hasattr(self, 'filter_timestamp') and self.filter_timestamp is not None:
+                since_str = self.filter_timestamp.strftime('%Y-%m-%d %H:%M:%S')
+                where_clauses.append(f"IndexTime > '{since_str}'")
+                print(f"  - Filtering data after: {since_str}")
+            else:
+                # If not in append mode and not creating new table, still limit to last 24 hours
+                default_start_time = (current_time - timedelta(hours=24)).strftime('%Y-%m-%d %H:%M:%S')
+                where_clauses.append(f"IndexTime >= '{default_start_time}'")
+                print(f"  - Limiting to last 24 hours (since {default_start_time})")
+        else:
+            print(f"  - Creating new table: fetching ALL available data from {table_name}")
         
-        try:
-            query = pd.read_sql_query(query_str, self.engine)
-            query_time = datetime.now() - start_time
-            
-            # If no data found, return empty dataframe
-            if query.empty:
-                print(f"  - [❌] No data found in {table_name} for {feature} with the current filter")
-                return pd.DataFrame()
-                
-            # Log basic stats
-            time_range = f"from {query['IndexTime'].min()} to {query['IndexTime'].max()}" if not query.empty else "no data"
-            print(f"  - [✅] Found {len(query):,} rows in {query_time.total_seconds():.1f}s | {time_range}")
-            
-            # Process the data
-            print("  - [⚙️] Processing data...")
-            start_process = datetime.now()
-            
-            # Drop duplicates and pivot
-            unique_count = len(query)
-            query = query.drop_duplicates(subset='IndexTime', keep='last')
-            dup_count = unique_count - len(query)
-            if dup_count > 0:
-                print(f"    - Removed {dup_count:,} duplicate timestamps")
-            
-            df = query.pivot(index="IndexTime", columns="LoggerTagID", values="Value")
-            
-            # Handle missing mills
-            found_mills = [str(k) for k in df.columns if str(k) in self.sql_tags[feature]]
-            missing_mills = [k for k in self.sql_tags[feature].keys() if k not in found_mills]
-            
-            if missing_mills:
-                print(f"    - ⚠️ Missing data for mills: {', '.join(missing_mills)}")
-            
-            # Forward fill, backfill, and resample
-            df = df.ffill().bfill()
-            df = df.resample("1min").mean()
-            
-            # Rename columns to mill names
-            df.columns = [self.sql_tags[feature][str(k)] for k in df.columns if str(k) in self.sql_tags[feature]]
-            df.index.names = ['TimeStamp']
-            df.sort_index(axis=1, inplace=True)
-            
-            process_time = datetime.now() - start_process
-            print(f"  - [✨] Processed {len(df):,} rows in {process_time.total_seconds():.1f}s")
-            
-            return df
-            
-        except Exception as e:
-            print(f"  - [❌] Error processing {table_name} for {feature}: {str(e)}")
-            import traceback
-            traceback.print_exc()
+        # Add a limit to prevent excessive data loading (but make it larger for new tables)
+        if self.creating_new_table:
+            limit_clause = "TOP 1000000"  # 1M rows for new tables
+        else:
+            limit_clause = "TOP 100000"   # 100K rows for updates
+        
+        # Build the final query
+        where_clause = " AND ".join(where_clauses) if where_clauses else "1=1"
+        query_str = f"""
+        SELECT {limit_clause} IndexTime, LoggerTagID, Value 
+        FROM {table_name} 
+        WHERE {where_clause}
+        ORDER BY IndexTime DESC
+        """
+        
+        # Log the query for debugging (without the actual values for security)
+        print(f"  - Executing query on {table_name} for {feature}")
+        # print(f"  - SQL Query: {query_str}")
+        
+        query = pd.read_sql_query(query_str, self.engine)
+        
+        # If no data found, return empty dataframe
+        if query.empty:
+            print(f"  - No data found in {table_name} for {feature} with the current filter")
             return pd.DataFrame()
+        else:
+            print(f"  - Found {len(query)} rows in {table_name} for {feature}")
+        
+        # Process the data
+        query = query.drop_duplicates(subset='IndexTime', keep='last')
+        df = query.pivot(index="IndexTime", columns="LoggerTagID", values="Value")
+        df = df.ffill().bfill()  # Using newer pandas methods
+        df = df.resample("1min").mean()
+        
+        # Rename columns to mill names
+        df.columns = [self.sql_tags[feature][str(k)] for k in df.columns if str(k) in self.sql_tags[feature]]
+        df.index.names = ['TimeStamp']
+        df.sort_index(axis=1, inplace=True)
+        
+        return df
 
     def compose_feature(self, feature):
         """Combine data from all tables for a specific feature"""
-        print(f"\n📊 Composing feature: {feature}")
-        print("-" * 50)
-        
         frames = []
-        total_rows = 0
-        
         for tbl in self.table_names:
-            print(f"\n📂 Processing table: {tbl}")
-            table_data = self.read_sql_table(tbl, feature)
-            
-            if not table_data.empty:
-                frames.append(table_data)
-                total_rows += len(table_data)
-                print(f"  - Added {len(table_data):,} rows from {tbl}")
-            else:
-                print(f"  - No data found in {tbl} for {feature}")
+            print(f"Processing {tbl} for {feature}")
+            frames.append(self.read_sql_table(tbl, feature))
         
-        if not frames:
-            print("⚠️ No data found for any tables")
-            return pd.DataFrame()
-        
-        print(f"\n🔗 Combining {len(frames)} data frames...")
-        start_combine = datetime.now()
-        
-        # Combine all frames
         df = pd.concat(frames)
-        
-        # Sort and remove duplicates
         df = df.sort_index()
-        initial_count = len(df)
-        df = df[~df.index.duplicated(keep='first')]
-        dup_count = initial_count - len(df)
-        
-        if dup_count > 0:
-            print(f"  - Removed {dup_count:,} duplicate timestamps")
-        
-        # Apply time shift (2 hours forward)
-        print("  - Applying 2-hour time shift...")
+        df = df[~df.index.duplicated(keep='first')]  # Remove duplicate timestamps
         df = df.shift(2, freq='h')
-        
-        # Fill any remaining gaps
-        print("  - Filling missing values...")
-        df = df.ffill().bfill()
-        
-        combine_time = datetime.now() - start_combine
-        print(f"\n✅ Combined {len(df):,} rows in {combine_time.total_seconds():.1f}s")
-        print("-" * 50)
-        
+        df = df.ffill().bfill()  # Using newer pandas methods
         return df
 
     def create_mill_dataframe(self, mill):
@@ -239,6 +200,9 @@ class PulseDBTransformer:
         """Save all mill data to PostgreSQL database, replacing existing data"""
         print("\nStarting to save all mills to PostgreSQL...")
         
+        # Set flag to indicate we're creating new tables
+        self.creating_new_table = True
+        
         # Create schema if it doesn't exist
         try:
             with self.pg_engine.connect() as conn:
@@ -267,158 +231,126 @@ class PulseDBTransformer:
             else:
                 print(f"No data to save for {mill}")
         
+        # Reset flag
+        self.creating_new_table = False
         print("\nAll mills have been processed and saved to the PostgreSQL database")
-
-    def table_exists(self, schema, table_name):
-        """Check if a table exists in the database"""
-        try:
-            with self.pg_engine.connect() as conn:
-                exists_query = text(f"""
-                    SELECT EXISTS (
-                        SELECT FROM pg_tables
-                        WHERE schemaname = :schema
-                        AND tablename = :table_name
-                    );
-                """)
-                result = conn.execute(exists_query, {'schema': schema, 'table_name': table_name}).fetchone()
-                return result[0] if result else False
-        except Exception as e:
-            print(f"Error checking if table {schema}.{table_name} exists: {e}")
-            return False
-
-    def get_latest_timestamp(self, schema, table_name):
-        """Get the latest timestamp from a table"""
-        try:
-            with self.pg_engine.connect() as conn:
-                query = text(f'SELECT MAX("TimeStamp") FROM {schema}."{table_name}"')
-                result = conn.execute(query).fetchone()
-                return result[0] if result and result[0] else None
-        except Exception as e:
-            print(f"Error getting latest timestamp from {schema}.{table_name}: {e}")
-            return None
-
-    def create_or_append_to_table(self, schema, table_name, mill):
-        """Create a new table or append to an existing one"""
-        try:
-            # Check if table exists
-            if not self.table_exists(schema, table_name):
-                print(f"🆕 Table {schema}.{table_name} doesn't exist, creating new table")
-                self.filter_timestamp = None  # Get all data for new tables
-                
-                mill_df = self.create_mill_dataframe(mill)
-                if not mill_df.empty:
-                    mill_df.to_sql(
-                        name=table_name,
-                        schema=schema,
-                        con=self.pg_engine,
-                        if_exists='replace',
-                        index=True,
-                        index_label='TimeStamp',
-                        method='multi',
-                        chunksize=1000
-                    )
-                    print(f"✅ Created new table {schema}.{table_name} with {len(mill_df)} rows")
-                else:
-                    print(f"⚠️ No data found for {mill}, table not created")
-                return
-
-            # Table exists, get latest timestamp
-            latest_timestamp = self.get_latest_timestamp(schema, table_name)
-            
-            if latest_timestamp:
-                if not isinstance(latest_timestamp, datetime):
-                    latest_timestamp = pd.to_datetime(latest_timestamp)
-                
-                # Add a buffer to account for the 2-hour shift in compose_feature
-                buffer_time = pd.Timedelta(hours=2.1)
-                self.filter_timestamp = latest_timestamp - buffer_time
-                
-                print(f"🔍 Found existing data in {schema}.{table_name} up to {latest_timestamp}")
-                print(f"   Filtering for data after {self.filter_timestamp} (with {buffer_time} buffer)")
-                
-                # Get new data
-                mill_df = self.create_mill_dataframe(mill)
-                
-                if not mill_df.empty:
-                    # Filter for only new records
-                    new_records = mill_df[mill_df.index > latest_timestamp]
-                    
-                    if not new_records.empty:
-                        print(f"📥 Found {len(new_records)} new records to append")
-                        
-                        # Append new data
-                        new_records.to_sql(
-                            name=table_name,
-                            schema=schema,
-                            con=self.pg_engine,
-                            if_exists='append',
-                            index=True,
-                            index_label='TimeStamp',
-                            method='multi',
-                            chunksize=1000
-                        )
-                        print(f"✅ Appended {len(new_records)} new rows to {schema}.{table_name}")
-                    else:
-                        print(f"ℹ️ No new data to append for {mill} (all data already exists)")
-                else:
-                    print(f"ℹ️ No new data found for {mill}")
-            else:
-                # Table exists but is empty, treat as new table
-                print(f"ℹ️ Table {schema}.{table_name} exists but is empty, populating with all data")
-                self.filter_timestamp = None
-                mill_df = self.create_mill_dataframe(mill)
-                
-                if not mill_df.empty:
-                    mill_df.to_sql(
-                        name=table_name,
-                        schema=schema,
-                        con=self.pg_engine,
-                        if_exists='replace',
-                        index=True,
-                        index_label='TimeStamp',
-                        method='multi',
-                        chunksize=1000
-                    )
-                    print(f"✅ Populated empty table {schema}.{table_name} with {len(mill_df)} rows")
-                
-        except Exception as e:
-            print(f"❌ Error processing {mill}: {str(e)}")
-            import traceback
-            traceback.print_exc()
 
     def append_to_postgresql(self, schema='mills'):
         """Append new data to existing PostgreSQL database tables, only adding records newer than the latest timestamp"""
-        print("\n🚀 Starting to synchronize data with PostgreSQL...")
+        print("\n🚀 Starting data synchronization to PostgreSQL...")
         start_time = datetime.now()
         
         # Create schema if it doesn't exist
         try:
             with self.pg_engine.connect() as conn:
-                conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
+                conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema};"))
                 conn.commit()
-            print(f"✅ Schema '{schema}' created or already exists")
+            print(f"✅ Schema '{schema}' created or already exists.")
         except SQLAlchemyError as e:
             print(f"❌ Error creating schema: {e}")
             return
         
-        # Store original table_names to restore later
-        original_table_names = self.table_names.copy()
-        
-        try:
-            # Process each mill
-            for mill in self.mills:
-                print(f"\n🔧 Processing {mill}...")
-                table_name = f"MILL_{mill[4:].zfill(2)}"
-                self.create_or_append_to_table(schema, table_name, mill)
+        # Process each mill
+        for mill in self.mills:
+            mill_start = datetime.now()
+            table_name = f"MILL_{mill[4:].zfill(2)}"
+            print(f"\n🔍 Processing {mill} (table: {schema}.{table_name})...")
+            
+            try:
+                # Check if table exists
+                with self.pg_engine.connect() as conn:
+                    exists = conn.execute(text(f"""
+                        SELECT EXISTS (
+                            SELECT FROM pg_tables
+                            WHERE schemaname = :schema 
+                            AND tablename = :table
+                        );
+                    """), {'schema': schema, 'table': table_name}).scalar()
                 
-        finally:
-            # Always restore original state
-            self.filter_timestamp = None
-            self.table_names = original_table_names
+                if exists:
+                    # Get latest timestamp from the table
+                    with self.pg_engine.connect() as conn:
+                        latest_ts = conn.execute(text(f'SELECT MAX("TimeStamp") FROM {schema}."{table_name}"')).scalar()
+                    
+                    if latest_ts:
+                        # Convert to datetime if it's a string
+                        latest_dt = pd.to_datetime(latest_ts) if not isinstance(latest_ts, datetime) else latest_ts
+                        
+                        # Set filter to get only new data (with buffer for timezone shifts)
+                        self.filter_timestamp = latest_dt - pd.Timedelta('2.5 hours')
+                        self.creating_new_table = False  # We're updating existing table
+                        print(f"  ⏱️  Last record in DB: {latest_dt}")
+                        print(f"  🔍 Fetching data after: {self.filter_timestamp}")
+                        
+                        # Get new data
+                        mill_df = self.create_mill_dataframe(mill)
+                        
+                        if not mill_df.empty:
+                            # Filter to only include new records (after the latest in DB)
+                            new_data = mill_df[mill_df.index > latest_dt]
+                            
+                            if not new_data.empty:
+                                # Insert new data
+                                new_data.to_sql(
+                                    name=table_name, 
+                                    schema=schema, 
+                                    con=self.pg_engine,
+                                    if_exists='append',
+                                    index=True,
+                                    index_label='TimeStamp',
+                                    method='multi',
+                                    chunksize=1000
+                                )
+                                duration = (datetime.now() - mill_start).total_seconds()
+                                print(f"  ✅ Appended {len(new_data)} new rows in {duration:.1f} seconds")
+                                print(f"  📊 New data range: {new_data.index.min()} to {new_data.index.max()}")
+                            else:
+                                print("  ℹ️  No new data to append")
+                        else:
+                            print("  ℹ️  No data returned from source")
+                    else:
+                        print(f"  ⚠️  Table exists but is empty - will repopulate")
+                        self._repopulate_table(mill, schema, table_name)
+                else:
+                    print(f"  🆕 Table doesn't exist - creating with initial data")
+                    self._repopulate_table(mill, schema, table_name)
+                    
+            except Exception as e:
+                print(f"  ❌ Error processing {mill}: {str(e)}")
+                import traceback
+                traceback.print_exc()
+            
+            mill_duration = (datetime.now() - mill_start).total_seconds()
+            print(f"  ⏱️  Completed in {mill_duration:.1f} seconds")
         
-        duration = datetime.now() - start_time
-        print(f"\n✨ All mills processed in {duration}")
-        print("✅ Data synchronization completed successfully!")
+        total_duration = (datetime.now() - start_time).total_seconds()
+        print(f"\n✅ Synchronization completed in {total_duration:.1f} seconds")
+    
+    def _repopulate_table(self, mill, schema, table_name):
+        """Helper method to repopulate a table with fresh data"""
+        print(f"  🔄 Repopulating {schema}.{table_name} with ALL available data...")
+        self.filter_timestamp = None  # Get all data
+        self.creating_new_table = True  # Remove time limitations
+        mill_df = self.create_mill_dataframe(mill)
+        
+        if not mill_df.empty:
+            mill_df.to_sql(
+                name=table_name,
+                schema=schema,
+                con=self.pg_engine,
+                if_exists='replace',
+                index=True,
+                index_label='TimeStamp',
+                method='multi',
+                chunksize=1000  # Process in smaller chunks for large datasets
+            )
+            print(f"  ✅ Created {schema}.{table_name} with {len(mill_df)} rows")
+            print(f"  📅 Data range: {mill_df.index.min()} to {mill_df.index.max()}")
+        else:
+            print("  ⚠️  No data available to populate table")
+        
+        # Reset flag
+        self.creating_new_table = False
 
 def main():
     # PostgreSQL connection parameters
@@ -428,18 +360,30 @@ def main():
     pg_user = 's.lyubenov'                   # PostgreSQL username
     pg_password = 'tP9uB7sH7mK6zA7t'         # PostgreSQL password
     
-    # Initialize the transformer with PostgreSQL connection parameters
-    transformer = PulseDBTransformer(
-        pg_host=pg_host,
-        pg_port=pg_port,
-        pg_dbname=pg_dbname,
-        pg_user=pg_user,
-        pg_password=pg_password
-    )
+    print("🚀 Starting Pulse to PostgreSQL data synchronization...")
+    print(f"Connecting to {pg_host}:{pg_port}/{pg_dbname} as {pg_user}")
     
-    # Automatically handle table creation and data appending
-    print("🔄 Starting data synchronization...")
-    transformer.append_to_postgresql()
+    try:
+        # Initialize the transformer with PostgreSQL connection parameters
+        transformer = PulseDBTransformer(
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_dbname=pg_dbname,
+            pg_user=pg_user,
+            pg_password=pg_password
+        )
+        
+        # Always use append mode - it will create tables if they don't exist
+        transformer.append_to_postgresql()
+        
+    except Exception as e:
+        print(f"❌ Error during synchronization: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return 1
+    
+    print("✅ Data synchronization completed successfully!")
+    return 0
 
 if __name__ == "__main__":
     main()
