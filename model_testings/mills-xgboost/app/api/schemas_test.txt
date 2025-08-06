@@ -1,0 +1,66 @@
+# TRAIN THE MODEL:
+{
+  "db_config": {
+    "host": "em-m-db4.ellatzite-med.com",
+    "port": 5432,
+    "dbname": "em_pulse_data",
+    "user": "s.lyubenov",
+    "password": "tP9uB7sH7mK6zA7t"
+  },
+  "mill_number": 8,
+  "start_date": "2025-06-10T06:00:00",
+  "end_date": "2025-07-11T22:00:00",
+  "features": [
+    "Ore",
+    "WaterMill",
+    "WaterZumpf",
+    "PressureHC",
+    "DensityHC",
+    "MotorAmp",
+    "Shisti",
+    "Daiki"
+  ],
+  "target_col": "PSI80",
+  "test_size": 0.2,
+  "params": {
+    "n_estimators": 300,
+    "learning_rate": 0.05,
+    "max_depth": 6,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "early_stopping_rounds": 30,
+    "objective": "reg:squarederror"
+  }
+}
+
+# TEST THE MODEL:
+{
+  "model_id": "xgboost_PSI80_mill8",
+  "data": {
+    "Ore": 169.3,
+    "WaterMill": 14.65,
+    "WaterZumpf": 218.5,
+    "PressureHC": 83.2,
+    "DensityHC": 1.68,
+    "MotorAmp": 42.7,
+    "Shisti": 0.125,
+    "Daiki": 0.367
+  }
+}
+
+# TEST BAYESIAN OPT ENDPOINT:
+{
+  "model_id": "xgboost_PSI80_mill8",
+  "parameter_bounds": {
+    "Ore": [160.0, 200.0],
+    "WaterMill": [5.0, 25.0],
+    "WaterZumpf": [170.0, 250.0],
+    "PressureHC": [0.2, 0.5],
+    "DensityHC": [1500, 1900],
+    "MotorAmp": [170.0, 220],
+    "Shisti": [0.02, 0.5],
+    "Daiki": [0.02, 0.5]
+  },
+  "n_iter": 50,
+  "maximize": true
+}

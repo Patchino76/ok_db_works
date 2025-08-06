@@ -1,0 +1,100 @@
+2025-07-10 09:35:52,448 - __main__ - INFO - Logging to file: C:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\logs\optuna_optimization_xgboost_PSI80_mill8.log
+2025-07-10 09:35:52,448 - __main__ - INFO - Creating black box function with model xgboost_PSI80_mill8
+2025-07-10 09:35:52,591 - __main__ - INFO - Successfully loaded model xgboost_PSI80_mill8
+2025-07-10 09:35:52,591 - __main__ - INFO - Features: ['Ore', 'WaterMill', 'WaterZumpf', 'PressureHC', 'DensityHC', 'MotorAmp', 'Shisti', 'Daiki']
+2025-07-10 09:35:52,591 - __main__ - INFO - Target column: PSI80
+2025-07-10 09:35:52,596 - __main__ - INFO - Starting optimization...
+2025-07-10 09:35:53,781 - __main__ - INFO - Best value: 53.73452377319336
+2025-07-10 09:35:53,781 - __main__ - INFO - Best parameters: {'Ore': 169.19004457263614, 'WaterMill': 18.18215413088572, 'WaterZumpf': 214.07712051032996, 'PressureHC': 85.13771095680576, 'DensityHC': 1.61680091188765, 'MotorAmp': 37.06564660233785, 'Shisti': 0.1467003548535241, 'Daiki': 0.285538237583827}
+2025-07-10 09:35:53,782 - __main__ - INFO - Generating plots...
+2025-07-10 09:35:55,200 - __main__ - INFO - Results saved to C:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\optimization_results\optimization_results.json
+2025-07-10 09:38:49,753 - __main__ - INFO - Logging to file: c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\logs\optuna_optimization_xgboost_PSI80_mill8.log
+2025-07-10 09:38:49,754 - __main__ - INFO - Creating black box function with model xgboost_PSI80_mill8
+2025-07-10 09:38:49,900 - __main__ - INFO - Successfully loaded model xgboost_PSI80_mill8
+2025-07-10 09:38:49,900 - __main__ - INFO - Features: ['Ore', 'WaterMill', 'WaterZumpf', 'PressureHC', 'DensityHC', 'MotorAmp', 'Shisti', 'Daiki']
+2025-07-10 09:38:49,900 - __main__ - INFO - Target column: PSI80
+2025-07-10 09:38:49,900 - __main__ - INFO - Starting optimization...
+2025-07-10 09:38:51,085 - __main__ - INFO - Best value: 53.739967346191406
+2025-07-10 09:38:51,085 - __main__ - INFO - Best parameters: {'Ore': 163.67994566807582, 'WaterMill': 16.65227086762342, 'WaterZumpf': 215.9658406940291, 'PressureHC': 89.08254110868896, 'DensityHC': 1.5951800268822227, 'MotorAmp': 34.051869116555416, 'Shisti': 0.15609507065714506, 'Daiki': 0.4143284226887458}
+2025-07-10 09:38:51,085 - __main__ - INFO - Generating plots...
+2025-07-10 09:38:52,424 - __main__ - INFO - Results saved to c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\optimization_results\optimization_results.json
+2025-07-10 10:00:46,717 - __main__ - INFO - Logging to file: C:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\logs\optuna_optimization_xgboost_PSI80_mill8.log
+2025-07-10 10:00:46,718 - __main__ - INFO - Creating black box function with model xgboost_PSI80_mill8
+2025-07-10 10:00:46,866 - __main__ - INFO - Successfully loaded model xgboost_PSI80_mill8
+2025-07-10 10:00:46,867 - __main__ - INFO - Features: ['Ore', 'WaterMill', 'WaterZumpf', 'PressureHC', 'DensityHC', 'MotorAmp', 'Shisti', 'Daiki']
+2025-07-10 10:00:46,867 - __main__ - INFO - Target column: PSI80
+2025-07-10 10:00:46,867 - __main__ - INFO - Starting optimization...
+2025-07-10 10:00:48,067 - __main__ - INFO - Best value: 53.57279968261719
+2025-07-10 10:00:48,067 - __main__ - INFO - Best parameters: {'Ore': 163.8534019110833, 'WaterMill': 13.758337979142725, 'WaterZumpf': 219.16108023476667, 'PressureHC': 71.71204649215038, 'DensityHC': 1.5513904787595068, 'MotorAmp': 47.98747668247907, 'Shisti': 0.19398149275375873, 'Daiki': 0.4975892783635293}
+2025-07-10 10:00:48,067 - __main__ - INFO - Generating plots...
+2025-07-10 10:00:49,417 - __main__ - INFO - Results saved to C:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\optimization_results\optimization_results.json
+2025-07-10 10:00:49,437 - __main__ - INFO - Exported 50 trials to C:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\optimization_results\optuna_trials.csv
+2025-07-10 10:00:49,438 - __main__ - INFO - Trial statistics:
+2025-07-10 10:00:49,440 - __main__ - INFO -   Mean value: 52.9382
+2025-07-10 10:00:49,440 - __main__ - INFO -   Std deviation: 0.4823
+2025-07-10 10:00:49,441 - __main__ - INFO -   Min value: 51.8116
+2025-07-10 10:00:49,441 - __main__ - INFO -   Max value: 53.5728
+2025-07-10 10:04:46,049 - __main__ - INFO - Logging to file: c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\logs\optuna_optimization_xgboost_PSI80_mill8.log
+2025-07-10 10:04:46,049 - __main__ - INFO - Creating black box function with model xgboost_PSI80_mill8
+2025-07-10 10:04:46,205 - __main__ - INFO - Successfully loaded model xgboost_PSI80_mill8
+2025-07-10 10:04:46,205 - __main__ - INFO - Features: ['Ore', 'WaterMill', 'WaterZumpf', 'PressureHC', 'DensityHC', 'MotorAmp', 'Shisti', 'Daiki']
+2025-07-10 10:04:46,205 - __main__ - INFO - Target column: PSI80
+2025-07-10 10:04:46,205 - __main__ - INFO - Starting optimization...
+2025-07-10 10:04:47,408 - __main__ - INFO - Best value: 53.858951568603516
+2025-07-10 10:04:47,408 - __main__ - INFO - Best parameters: {'Ore': 170.0644880374768, 'WaterMill': 15.450809981089954, 'WaterZumpf': 172.74902087362932, 'PressureHC': 0.4334708074420379, 'DensityHC': 1601.137601146353, 'MotorAmp': 206.78418937434887, 'Shisti': 0.16585360785418457, 'Daiki': 0.20524025545648544}
+2025-07-10 10:04:47,408 - __main__ - INFO - Generating plots...
+2025-07-10 10:04:48,775 - __main__ - INFO - Results saved to c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\optimization_results\optimization_results.json
+2025-07-10 10:04:48,784 - __main__ - INFO - Exported 50 trials to c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\optimization_results\optuna_trials.csv
+2025-07-10 10:04:48,784 - __main__ - INFO - Trial statistics:
+2025-07-10 10:04:48,784 - __main__ - INFO -   Mean value: 52.6335
+2025-07-10 10:04:48,785 - __main__ - INFO -   Std deviation: 1.1532
+2025-07-10 10:04:48,785 - __main__ - INFO -   Min value: 49.1768
+2025-07-10 10:04:48,786 - __main__ - INFO -   Max value: 53.8590
+2025-07-10 10:06:40,692 - __main__ - INFO - Logging to file: c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\logs\optuna_optimization_xgboost_PSI80_mill8.log
+2025-07-10 10:06:40,692 - __main__ - INFO - Creating black box function with model xgboost_PSI80_mill8
+2025-07-10 10:06:40,836 - __main__ - INFO - Successfully loaded model xgboost_PSI80_mill8
+2025-07-10 10:06:40,836 - __main__ - INFO - Features: ['Ore', 'WaterMill', 'WaterZumpf', 'PressureHC', 'DensityHC', 'MotorAmp', 'Shisti', 'Daiki']
+2025-07-10 10:06:40,836 - __main__ - INFO - Target column: PSI80
+2025-07-10 10:06:40,836 - __main__ - INFO - Starting optimization...
+2025-07-10 10:06:45,065 - __main__ - INFO - Best value: 54.54756546020508
+2025-07-10 10:06:45,065 - __main__ - INFO - Best parameters: {'Ore': 169.9862951892876, 'WaterMill': 17.031755344279397, 'WaterZumpf': 247.2918366774011, 'PressureHC': 0.40688436978393866, 'DensityHC': 1619.1043029158416, 'MotorAmp': 216.8238743648806, 'Shisti': 0.23399386553997983, 'Daiki': 0.37869969736673753}
+2025-07-10 10:06:45,065 - __main__ - INFO - Generating plots...
+2025-07-10 10:06:47,157 - __main__ - INFO - Results saved to c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\optimization_results\optimization_results.json
+2025-07-10 10:06:47,171 - __main__ - INFO - Exported 150 trials to c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\optimization_results\optuna_trials.csv
+2025-07-10 10:06:47,171 - __main__ - INFO - Trial statistics:
+2025-07-10 10:06:47,173 - __main__ - INFO -   Mean value: 53.4983
+2025-07-10 10:06:47,173 - __main__ - INFO -   Std deviation: 0.9780
+2025-07-10 10:06:47,173 - __main__ - INFO -   Min value: 48.8541
+2025-07-10 10:06:47,173 - __main__ - INFO -   Max value: 54.5476
+2025-07-10 16:12:38,245 - __main__ - INFO - Logging to file: c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\logs\optuna_optimization_xgboost_PSI80_mill8.log
+2025-07-10 16:12:38,245 - __main__ - INFO - Creating black box function with model xgboost_PSI80_mill8
+2025-07-10 16:12:38,426 - __main__ - INFO - Successfully loaded model xgboost_PSI80_mill8
+2025-07-10 16:12:38,427 - __main__ - INFO - Features: ['Ore', 'WaterMill', 'WaterZumpf', 'PressureHC', 'DensityHC', 'MotorAmp', 'Shisti', 'Daiki']
+2025-07-10 16:12:38,427 - __main__ - INFO - Target column: PSI80
+2025-07-10 16:12:38,427 - __main__ - INFO - Starting optimization...
+2025-07-10 16:12:42,961 - __main__ - INFO - Best value: 54.677215576171875
+2025-07-10 16:12:42,961 - __main__ - INFO - Best parameters: {'Ore': 171.42125820624778, 'WaterMill': 19.848937973038566, 'WaterZumpf': 249.621250795691, 'PressureHC': 0.3774708481490633, 'DensityHC': 1640.0234107796894, 'MotorAmp': 200.337497674973, 'Shisti': 0.06316737561636133, 'Daiki': 0.3924411912988672}
+2025-07-10 16:12:42,962 - __main__ - INFO - Generating plots...
+2025-07-10 16:12:45,899 - __main__ - INFO - Results saved to c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\optimization_results\optimization_results.json
+2025-07-10 16:12:45,916 - __main__ - INFO - Exported 150 trials to c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\optimization_results\optuna_trials.csv
+2025-07-10 16:12:45,916 - __main__ - INFO - Trial statistics:
+2025-07-10 16:12:45,917 - __main__ - INFO -   Mean value: 53.5175
+2025-07-10 16:12:45,917 - __main__ - INFO -   Std deviation: 1.1274
+2025-07-10 16:12:45,917 - __main__ - INFO -   Min value: 48.7785
+2025-07-10 16:12:45,917 - __main__ - INFO -   Max value: 54.6772
+2025-07-14 09:51:21,156 - __main__ - INFO - Logging to file: c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\logs\optuna_optimization_xgboost_PSI80_mill8.log
+2025-07-14 09:51:21,157 - __main__ - INFO - Creating black box function with model xgboost_PSI80_mill8
+2025-07-14 09:51:21,316 - __main__ - INFO - Successfully loaded model xgboost_PSI80_mill8
+2025-07-14 09:51:21,316 - __main__ - INFO - Features: ['Ore', 'WaterMill', 'WaterZumpf', 'PressureHC', 'DensityHC', 'MotorAmp', 'Shisti', 'Daiki']
+2025-07-14 09:51:21,316 - __main__ - INFO - Target column: PSI80
+2025-07-14 09:51:21,316 - __main__ - INFO - Starting optimization...
+2025-07-14 09:51:25,666 - __main__ - INFO - Best value: 55.35116958618164
+2025-07-14 09:51:25,666 - __main__ - INFO - Best parameters: {'Ore': 171.11891684467253, 'WaterMill': 16.931294446195945, 'WaterZumpf': 245.125702131961, 'PressureHC': 0.3461049427352746, 'DensityHC': 1643.6956600389824, 'MotorAmp': 200.7413389181935, 'Shisti': 0.097870033198792, 'Daiki': 0.16045641535623645}
+2025-07-14 09:51:25,667 - __main__ - INFO - Generating plots...
+2025-07-14 09:51:28,437 - __main__ - INFO - Results saved to c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\optimization_results\optimization_results.json
+2025-07-14 09:51:28,455 - __main__ - INFO - Exported 150 trials to c:\Projects\ok_dashboard\python\mills-xgboost\app\optimization\optimization_results\optuna_trials.csv
+2025-07-14 09:51:28,456 - __main__ - INFO - Trial statistics:
+2025-07-14 09:51:28,457 - __main__ - INFO -   Mean value: 53.9923
+2025-07-14 09:51:28,457 - __main__ - INFO -   Std deviation: 1.1953
+2025-07-14 09:51:28,457 - __main__ - INFO -   Min value: 49.5870
+2025-07-14 09:51:28,457 - __main__ - INFO -   Max value: 55.3512

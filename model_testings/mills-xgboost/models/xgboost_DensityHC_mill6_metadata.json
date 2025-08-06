@@ -1,0 +1,31 @@
+{
+  "features": [
+    "Ore",
+    "WaterZumpf"
+  ],
+  "target_col": "DensityHC",
+  "model_params": {
+    "n_estimators": 300,
+    "learning_rate": 0.05,
+    "max_depth": 6,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "early_stopping_rounds": 30,
+    "objective": "reg:squarederror"
+  },
+  "feature_importance": {
+    "Feature": {
+      "1": "WaterZumpf",
+      "0": "Ore"
+    },
+    "Importance": {
+      "1": 0.6078851819038391,
+      "0": 0.3921148180961609
+    }
+  },
+  "training_history": {
+    "best_iteration": 13,
+    "best_score": 24.935976397733054
+  },
+  "last_trained": "2025-08-06T10:53:05.374058"
+}

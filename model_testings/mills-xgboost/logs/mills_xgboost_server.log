@@ -1,0 +1,18 @@
+2025-07-09 11:38:58,321 - mills_ml_router - INFO - Mills XGBoost logging configured - log file: C:\Projects\ok_dashboard\python\mills-xgboost\logs\mills_xgboost_server.log
+2025-07-09 11:38:58,321 - mills_ml_router - INFO - Mills XGBoost logging configured - log file: C:\Projects\ok_dashboard\python\mills-xgboost\logs\mills_xgboost_server.log
+2025-07-09 11:38:58,321 - mills_ml_router - INFO - Mills XGBoost logs directory: C:\Projects\ok_dashboard\python\mills-xgboost\logs
+2025-07-09 11:38:58,321 - mills_ml_router - INFO - Mills XGBoost logs directory: C:\Projects\ok_dashboard\python\mills-xgboost\logs
+2025-07-09 11:38:58,321 - mills_ml_router - INFO - Mills XGBoost logging system initialized successfully
+2025-07-09 11:38:58,321 - mills_ml_router - INFO - Mills XGBoost logging system initialized successfully
+2025-07-09 11:38:58,321 - mills_ml_router - INFO - Mills ML router loaded successfully
+2025-07-09 11:38:58,321 - mills_ml_router - INFO - Mills ML router loaded successfully
+2025-07-09 11:38:58,325 - database - INFO - Attempting to connect to database...
+2025-07-09 11:38:58,325 - database - INFO - Using default configuration
+2025-07-09 11:38:58,377 - database - INFO - Successfully connected to database pulse on 10.20.2.10
+2025-07-09 11:38:58,378 - database - INFO - Database connection successful
+2025-07-09 11:38:58,462 - mills_ml_router - INFO - Mills ML router loaded successfully
+2025-07-09 11:38:58,462 - mills_ml_router - INFO - Mills ML router loaded successfully
+2025-07-09 11:38:58,465 - database - INFO - Attempting to connect to database...
+2025-07-09 11:38:58,466 - database - INFO - Using default configuration
+2025-07-09 11:38:58,485 - database - INFO - Successfully connected to 2025-07-09 11:38:58,786 - watchfiles.main - INFO - 1 change detected
+O - Database connection successful

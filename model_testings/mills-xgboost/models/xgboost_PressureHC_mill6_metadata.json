@@ -1,0 +1,31 @@
+{
+  "features": [
+    "PulpHC",
+    "PumpRPM"
+  ],
+  "target_col": "PressureHC",
+  "model_params": {
+    "n_estimators": 300,
+    "learning_rate": 0.05,
+    "max_depth": 6,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "early_stopping_rounds": 30,
+    "objective": "reg:squarederror"
+  },
+  "feature_importance": {
+    "Feature": {
+      "1": "PumpRPM",
+      "0": "PulpHC"
+    },
+    "Importance": {
+      "1": 0.599277138710022,
+      "0": 0.4007228910923004
+    }
+  },
+  "training_history": {
+    "best_iteration": 33,
+    "best_score": 0.03038315763765711
+  },
+  "last_trained": "2025-08-06T10:54:55.678016"
+}

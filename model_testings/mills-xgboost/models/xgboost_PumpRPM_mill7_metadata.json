@@ -1,0 +1,46 @@
+{
+  "features": [
+    "Ore",
+    "WaterMill",
+    "WaterZumpf",
+    "PulpHC",
+    "MotorAmp",
+    "DensityHC",
+    "PressureHC"
+  ],
+  "target_col": "PumpRPM",
+  "model_params": {
+    "n_estimators": 300,
+    "learning_rate": 0.05,
+    "max_depth": 6,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "early_stopping_rounds": 30,
+    "objective": "reg:squarederror"
+  },
+  "feature_importance": {
+    "Feature": {
+      "6": "PressureHC",
+      "2": "WaterZumpf",
+      "3": "PulpHC",
+      "5": "DensityHC",
+      "0": "Ore",
+      "1": "WaterMill",
+      "4": "MotorAmp"
+    },
+    "Importance": {
+      "6": 0.37864747643470764,
+      "2": 0.33104875683784485,
+      "3": 0.11106964945793152,
+      "5": 0.07490626722574234,
+      "0": 0.03947412595152855,
+      "1": 0.03820154070854187,
+      "4": 0.02665221504867077
+    }
+  },
+  "training_history": {
+    "best_iteration": 14,
+    "best_score": 4.7337268953161225
+  },
+  "last_trained": "2025-07-29T15:29:30.203886"
+}
