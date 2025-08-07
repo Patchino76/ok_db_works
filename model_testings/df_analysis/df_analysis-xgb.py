@@ -34,9 +34,15 @@ parameters = [
 
 #%% Load and prepare the data
 # Load the combined mill data
-file_path = 'model_testings/data/combined_data_mill6.csv'
+file_path = 'model_testings/data/combined_data_mill8.csv'
 df = pd.read_csv(file_path, parse_dates=['TimeStamp'], index_col='TimeStamp')
-df = df[parameters]
+# First filter the DataFrame with the original parameters
+df = df[parameters].copy()
+
+# Filter by date range
+start_date = pd.Timestamp('2025-06-15 06:00')
+end_date = pd.Timestamp('2025-08-04 22:00')
+df = df.loc[start_date:end_date].copy()
 
 # Apply data quality constraints
 initial_count = len(df)
@@ -52,15 +58,16 @@ df = df[
 ].copy()
 
 
+
 # Display basic info about the dataframe
 print("DataFrame Info:")
 df.info()
 
 # Display first and last few rows
 print("\nFirst 2 rows of the dataframe:")
-display(df.head(2))
+print(df.head(2))
 print("\nLast 2 rows of the dataframe:")
-display(df.tail(2))
+print(df.tail(2))
 
 #%% Smoothing function and demonstration
 # --------------------------------------- SMOOTH DF -------------------------------
@@ -169,7 +176,7 @@ methods = {
 # print("- For general smoothing: EMA with alpha=0.1-0.3")
 # print("- For outlier removal: Rolling Median with window_size=7-15")
 
-df = smooth_time_series(df, 'savgol', window_size=1120, polyorder=3
+df = smooth_time_series(df, 'savgol', window_size=120, polyorder=2
 )
 df.plot()
 
@@ -255,9 +262,9 @@ plt.show()
 # Define target and features
 target = 'PSI200'
 features = [
-    # 'Ore',
-    # 'WaterMill',
-    # 'WaterZumpf',
+    'Ore',
+    'WaterMill',
+    'WaterZumpf',
     # 'Power',
     # 'ZumpfLevel',
     # 'PressureHC',
@@ -298,7 +305,7 @@ print(f"- Original dataset shape: {df.shape}")
 print(f"- Training set shape: X_train: {X_train.shape}, y_train: {y_train.shape}")
 print(f"- Test set shape: X_test: {X_test.shape}, y_test: {y_test.shape}")
 print("\nFirst few rows of scaled training features:")
-display(X_train_scaled.head(2))
+print(X_train_scaled.head(2))
 
 # Save the prepared data for future use
 prepared_data = {
@@ -318,13 +325,32 @@ print("\n" + "="*80)
 print("TRAINING MULTIVARIATE LINEAR REGRESSION MODEL")
 print("="*80)
 
-from sklearn.linear_model import LinearRegression
+from xgboost import XGBRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import matplotlib.pyplot as plt
 
 # Initialize and train the model
-print("\nTraining the model...")
-model = LinearRegression()
+print("\nTraining the XGBoost model...")
+# model = XGBRegressor(
+#     n_estimators=100,
+#     learning_rate=0.1,
+#     max_depth=5,
+#     min_child_weight=1,
+#     subsample=0.8,
+#     colsample_bytree=0.8,
+#     random_state=42
+# )
+model = XGBRegressor(
+    n_estimators=50,          # Reduce from 100
+    learning_rate=0.05,       # Reduce from 0.1
+    max_depth=8,              # Reduce from 5
+    min_child_weight=5,       # Increase from 1
+    subsample=0.7,            # Reduce from 0.8
+    colsample_bytree=0.7,     # Reduce from 0.8
+    reg_alpha=0.2,            # Add L1 regularization
+    reg_lambda=20.0,           # Add L2 regularization
+    random_state=42
+)
 model.fit(X_train_scaled, y_train)
 
 # Make predictions
@@ -363,13 +389,13 @@ print(f"\nCorrelation test set: {correlation:.4f}")
 # Plot feature importance
 feature_importance = pd.DataFrame({
     'Feature': features,
-    'Coefficient': model.coef_
-}).sort_values('Coefficient', key=abs, ascending=False)
+    'Importance': model.feature_importances_
+}).sort_values('Importance', ascending=True)
 
 plt.figure(figsize=(12, 6))
-plt.barh(feature_importance['Feature'], feature_importance['Coefficient'])
-plt.title('Feature Importance (Linear Regression Coefficients)')
-plt.xlabel('Coefficient Value')
+plt.barh(feature_importance['Feature'], feature_importance['Importance'])
+plt.title('Feature Importance (XGBoost)')
+plt.xlabel('Importance Score')
 plt.tight_layout()
 plt.show()
 
@@ -469,6 +495,78 @@ plt.figtext(
 
 plt.tight_layout()
 plt.show()
+
+#%% Residual Analysis
+print("\nPerforming residual analysis...")
+residuals = y_test - y_test_pred
+
+plt.figure(figsize=(15, 4))
+
+# Plot 1: Residuals vs Predicted
+plt.subplot(1, 3, 1)
+plt.scatter(y_test_pred, residuals, alpha=0.5)
+plt.axhline(y=0, color='r', linestyle='--')
+plt.xlabel('Predicted Values')
+plt.ylabel('Residuals')
+plt.title('Residuals vs Predicted')
+plt.grid(True, alpha=0.3)
+
+# Plot 2: Residuals vs Actual  
+plt.subplot(1, 3, 2)
+plt.scatter(y_test, residuals, alpha=0.5)
+plt.axhline(y=0, color='r', linestyle='--')
+plt.xlabel('Actual Values')
+plt.ylabel('Residuals')
+plt.title('Residuals vs Actual')
+plt.grid(True, alpha=0.3)
+
+# Plot 3: Distribution of residuals
+plt.subplot(1, 3, 3)
+plt.hist(residuals, bins=30, alpha=0.7, edgecolor='black')
+plt.axvline(x=0, color='r', linestyle='--')
+plt.xlabel('Residuals')
+plt.ylabel('Frequency')
+plt.title('Residual Distribution')
+plt.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Additional residual statistics
+print("\nResidual Analysis Summary:")
+print(f"- Mean of residuals: {np.mean(residuals):.4f}")
+print(f"- Standard deviation of residuals: {np.std(residuals):.4f}")
+print(f"- Skewness of residuals: {pd.Series(residuals).skew():.4f}")
+print(f"- Kurtosis of residuals: {pd.Series(residuals).kurtosis():.4f}")
+
+# Range-based bias analysis
+print("\nRange-Based Bias Analysis:")
+# Check if bias varies by prediction range
+low_pred = y_test_pred < np.quantile(y_test_pred, 0.33)
+mid_pred = (y_test_pred >= np.quantile(y_test_pred, 0.33)) & (y_test_pred <= np.quantile(y_test_pred, 0.67))
+high_pred = y_test_pred > np.quantile(y_test_pred, 0.67)
+
+print("\nAverage Residuals by Prediction Range:")
+print(f"- Low predictions (<33rd percentile): Mean Residual = {np.mean(residuals[low_pred]):.4f}")
+print(f"- Mid predictions (33rd-67th percentile): Mean Residual = {np.mean(residuals[mid_pred]):.4f}")
+print(f"- High predictions (>67th percentile): Mean Residual = {np.mean(residuals[high_pred]):.4f}")
+
+# Additional metrics for each range
+def print_range_metrics(y_true, y_pred, mask, range_name):
+    range_mae = mean_absolute_error(y_true[mask], y_pred[mask])
+    range_rmse = np.sqrt(mean_squared_error(y_true[mask], y_pred[mask]))
+    range_r2 = r2_score(y_true[mask], y_pred[mask])
+    print(f"\n{range_name} Range Metrics:")
+    print(f"- MAE: {range_mae:.4f}")
+    print(f"- RMSE: {range_rmse:.4f}")
+    print(f"- R²: {range_r2:.4f}")
+    return range_mae, range_rmse, range_r2
+
+# Calculate and print metrics for each range
+print("\nDetailed Performance by Prediction Range:")
+print_range_metrics(y_test, y_test_pred, low_pred, "Low")
+print_range_metrics(y_test, y_test_pred, mid_pred, "Medium")
+print_range_metrics(y_test, y_test_pred, high_pred, "High")
 
 print("\n" + "="*80)
 print("MODEL TRAINING AND VISUALIZATION COMPLETE")
