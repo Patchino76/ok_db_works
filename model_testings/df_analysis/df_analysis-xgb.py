@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from pathlib import Path
 
 # Set display options for better readability
 pd.set_option('display.max_columns', 50)
@@ -34,7 +35,8 @@ parameters = [
 
 #%% Load and prepare the data
 # Load the combined mill data
-file_path = 'model_testings/data/combined_data_mill8.csv'
+base_dir = Path(__file__).resolve().parents[1]  # .../model_testings
+file_path = base_dir / 'data' / 'combined_data_mill8.csv'
 df = pd.read_csv(file_path, parse_dates=['TimeStamp'], index_col='TimeStamp')
 # First filter the DataFrame with the original parameters
 df = df[parameters].copy()
