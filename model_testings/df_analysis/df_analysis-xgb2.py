@@ -36,7 +36,7 @@ parameters = [
 #%% Load and prepare the data
 # Load the combined mill data
 base_dir = Path(__file__).resolve().parents[1]  # .../model_testings
-file_path = base_dir / 'data' / 'combined_data_mill6.csv'
+file_path = base_dir / 'data' / 'combined_data_mill7.csv'
 df = pd.read_csv(file_path, parse_dates=['TimeStamp'], index_col='TimeStamp')
 # First filter the DataFrame with the original parameters
 df = df[parameters].copy()
@@ -71,6 +71,92 @@ print(df.head(2))
 print("\nLast 2 rows of the dataframe:")
 print(df.tail(2))
 #%%
+def estimate_lag_ccf(
+    df: pd.DataFrame,
+    x: str,
+    y: str,
+    max_lag: int = 120,
+    detrend_window: int | None = 60,
+    standardize: bool = True,
+    return_series: bool = True,
+    plot: bool = False,
+    ax=None,
+):
+   
+
+    if x not in df.columns or y not in df.columns:
+        raise KeyError(f"Columns not found: x='{x}', y='{y}'. Available: {list(df.columns)}")
+
+    # Align and drop rows where either is missing
+    s = df[[x, y]].copy()
+    s = s.dropna(how='any')
+    if s.empty:
+        raise ValueError("After dropping NaNs there is no data to compute CCF.")
+
+    xs = s[x].astype(float)
+    ys = s[y].astype(float)
+
+    # Detrend with rolling mean to remove slow drift (uses past and current values only)
+    if detrend_window and detrend_window > 1:
+        xs = xs - xs.rolling(detrend_window, min_periods=1).mean()
+        ys = ys - ys.rolling(detrend_window, min_periods=1).mean()
+
+    if standardize:
+        # Z-score; guard against zero variance
+        x_std = xs.std(ddof=0)
+        y_std = ys.std(ddof=0)
+        xs = (xs - xs.mean()) / (x_std if x_std != 0 else 1.0)
+        ys = (ys - ys.mean()) / (y_std if y_std != 0 else 1.0)
+
+    lags = np.arange(-max_lag, max_lag + 1)
+    corrs = []
+    # Positive lag -> correlate y_t with x_{t-lag} by shifting x forward
+    for l in lags:
+        corrs.append(ys.corr(xs.shift(l)))
+
+    corrs = pd.Series(corrs, index=lags)
+    # Choose lag by absolute correlation (strength), keep sign
+    if corrs.abs().isna().all():
+        raise ValueError("All correlation values are NaN; check data and parameters.")
+    best_lag = int(corrs.abs().idxmax())
+    best_corr = float(corrs.loc[best_lag])
+
+    # Infer sampling period if DateTimeIndex
+    step_td = None
+    lag_td = None
+    if isinstance(s.index, pd.DatetimeIndex) and len(s.index) > 1:
+        diffs = s.index.to_series().diff().dropna()
+        if not diffs.empty:
+            step_td = diffs.median()
+            try:
+                lag_td = step_td * best_lag
+            except Exception:
+                lag_td = None
+
+    if plot:
+        _ax = ax
+        if _ax is None:
+            fig, _ax = plt.subplots(figsize=(7.5, 3.5))
+        _ax.stem(corrs.index, corrs.values, linefmt='0.7', markerfmt='o', basefmt=' ')
+        _ax.axvline(0, color='k', lw=0.8)
+        _ax.axvline(best_lag, color='C1', lw=1.2, ls='--', label=f"best lag = {best_lag}")
+        _ax.set_xlabel('Lag (steps) — positive: x leads y (y after x)')
+        _ax.set_ylabel('Correlation')
+        title_td = f" (~{lag_td})" if lag_td is not None else ""
+        _ax.set_title(f"Cross-correlation {x} → {y}: best lag {best_lag}{title_td}, r = {best_corr:.3f}")
+        _ax.legend(loc='best')
+        plt.tight_layout()
+
+    return {
+        'best_lag': best_lag,
+        'best_corr': best_corr,
+        'corrs': corrs if return_series else None,
+        'lag_timedelta': lag_td,
+        'step_timedelta': step_td,
+        'x': x,
+        'y': y,
+    }
+#%%
 def shift_feature_trim(df: pd.DataFrame, feature: str, shift: int) -> pd.DataFrame:
     """
     Shift an existing feature by `shift` steps and trim only the edge rows that
@@ -96,10 +182,6 @@ def shift_feature_trim(df: pd.DataFrame, feature: str, shift: int) -> pd.DataFra
     out = out.dropna(subset=[feature])
 
     return out
-
-df = shift_feature_trim(df, 'Ore', 15)
-df.tail()
-#-------------------------------------------------------------------------
 #%% Smoothing function and demonstration
 # --------------------------------------- SMOOTH DF -------------------------------
 def smooth_time_series(data, method='savgol', window_size=None, polyorder=2, alpha=0.3, span=5, loess_frac=0.3, **kwargs):
@@ -253,14 +335,50 @@ features = [
     'PressureHC',
     'DensityHC',
     'PulpHC',
-    'PumpRPM',
+    # 'PumpRPM',
     'MotorAmp',
-    'Class_15',
+    # 'Class_15',
     # 'Class_12',
     # 'Grano',
     # 'Daiki',
     # 'Shisti'
 ]
+
+# Estimate best lag for each feature vs target and shift dataframe accordingly
+print("\nEstimating best lag for each feature relative to target 'PSI200'...")
+lag_results: dict[str, dict] = {}
+for feat in features:
+    try:
+        res = estimate_lag_ccf(
+            df=df,
+            x=feat,
+            y=target,
+            max_lag=90,
+            detrend_window=60,
+            standardize=True,
+            return_series=False,
+            plot=True,
+        )
+        lag_results[feat] = res
+        lag_td = res.get('lag_timedelta')
+        print(f"- {feat}: best_lag = {res['best_lag']:+d} steps" + (f" (~{lag_td})" if lag_td is not None else "") + f", corr = {res['best_corr']:.3f}")
+    except Exception as e:
+        print(f"! Failed lag estimation for {feat}: {e}")
+
+print("\nShifting features by their estimated lags...\n(Note: positive lag means the feature leads the target; we shift it forward)")
+for feat, res in lag_results.items():
+    lag = int(res['best_lag'])
+    if lag == 0:
+        print(f"  - {feat}: lag=0, no shift applied")
+        continue
+    before = len(df)
+    df = shift_feature_trim(df, feature=feat, shift=lag)
+    after = len(df)
+    print(f"  - {feat}: shifted by {lag:+d} steps | rows {before} -> {after}")
+
+# Final alignment to ensure no NaNs remain in modeling columns
+df = df.dropna(subset=[target] + features)
+print(f"Post-shift DataFrame shape: {df.shape}")
 
 # Split into features (X) and target (y)
 X = df[features].copy()
@@ -515,49 +633,4 @@ plt.grid(True, alpha=0.3)
 
 plt.tight_layout()
 plt.show()
-
-# Additional residual statistics
-print("\nResidual Analysis Summary:")
-print(f"- Mean of residuals: {np.mean(residuals):.4f}")
-print(f"- Standard deviation of residuals: {np.std(residuals):.4f}")
-print(f"- Skewness of residuals: {pd.Series(residuals).skew():.4f}")
-print(f"- Kurtosis of residuals: {pd.Series(residuals).kurtosis():.4f}")
-
-# Range-based bias analysis
-print("\nRange-Based Bias Analysis:")
-# Check if bias varies by prediction range
-low_pred = y_test_pred < np.quantile(y_test_pred, 0.33)
-mid_pred = (y_test_pred >= np.quantile(y_test_pred, 0.33)) & (y_test_pred <= np.quantile(y_test_pred, 0.67))
-high_pred = y_test_pred > np.quantile(y_test_pred, 0.67)
-
-print("\nAverage Residuals by Prediction Range:")
-print(f"- Low predictions (<33rd percentile): Mean Residual = {np.mean(residuals[low_pred]):.4f}")
-print(f"- Mid predictions (33rd-67th percentile): Mean Residual = {np.mean(residuals[mid_pred]):.4f}")
-print(f"- High predictions (>67th percentile): Mean Residual = {np.mean(residuals[high_pred]):.4f}")
-
-# Additional metrics for each range
-def print_range_metrics(y_true, y_pred, mask, range_name):
-    range_mae = mean_absolute_error(y_true[mask], y_pred[mask])
-    range_rmse = np.sqrt(mean_squared_error(y_true[mask], y_pred[mask]))
-    range_r2 = r2_score(y_true[mask], y_pred[mask])
-    print(f"\n{range_name} Range Metrics:")
-    print(f"- MAE: {range_mae:.4f}")
-    print(f"- RMSE: {range_rmse:.4f}")
-    print(f"- R²: {range_r2:.4f}")
-    return range_mae, range_rmse, range_r2
-
-# Calculate and print metrics for each range
-print("\nDetailed Performance by Prediction Range:")
-print_range_metrics(y_test, y_test_pred, low_pred, "Low")
-print_range_metrics(y_test, y_test_pred, mid_pred, "Medium")
-print_range_metrics(y_test, y_test_pred, high_pred, "High")
-
-print("\n" + "="*80)
-print("MODEL TRAINING AND VISUALIZATION COMPLETE")
-print("="*80)
-
-# Save the prepared data and model for future use
-print("\nSaving model and data for future use...")
-prepared_data['last_updated'] = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
-print("Done!")
-# %%
+#%%

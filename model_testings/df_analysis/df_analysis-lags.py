@@ -332,55 +332,37 @@ def estimate_lag_ccf(
 estimate_lag_ccf(df_ccf, 'Ore', 'PSI200', max_lag=120, detrend_window=30, plot=True)
 #%%
 
-def shift_feature_trim(df: pd.DataFrame, feature: str, shift: int, new_name: str | None = None) -> pd.DataFrame:
+def shift_feature_trim(df: pd.DataFrame, feature: str, shift: int) -> pd.DataFrame:
     """
-    Add a shifted version of `feature` to the DataFrame and trim only the rows
-    that become NaN due to the shift (edge trimming). Works for positive or
-    negative shifts. Returns a new DataFrame.
+    Shift an existing feature by `shift` steps and trim only the edge rows that
+    become NaN due to the shift. The column name is preserved (no new column).
 
-    Convention: positive `shift` means the new column at time t contains
-    feature[t - shift] (i.e., past values aligned to predict current target).
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Source DataFrame (not modified in place).
-    feature : str
-        Column name to shift.
-    shift : int
-        Number of steps to shift. Positive or negative. Zero returns a copy
-        with the same values added as a new column.
-    new_name : str | None
-        Optional name for the new column. If None, uses
-        f"{feature}_shift{shift:+d}".
-
-    Returns
-    -------
-    pd.DataFrame
-        A copy of df with the shifted column added and edge rows trimmed so
-        the new column has no NaNs. Any pre-existing NaNs in other columns are
-        preserved (not mass-dropped).
+    Convention: positive `shift` means the value at time t becomes the past
+    value feature[t-shift] (i.e., align past values to current time).
     """
+
     if feature not in df.columns:
         raise KeyError(f"'{feature}' not found in DataFrame columns: {list(df.columns)}")
 
     out = df.copy()
-    col = new_name or f"{feature}_shift{shift:+d}"
-    out[col] = out[feature].shift(shift)
+    out[feature] = out[feature].shift(shift)
 
-    # Edge trimming to remove the NaNs created by shifting
+    # Edge trimming to remove NaNs created by shifting
     if shift > 0:
         out = out.iloc[shift:].copy()
     elif shift < 0:
         out = out.iloc[:shift].copy()  # trims last -shift rows
 
-    # Drop any residual NaNs in the new column (e.g., internal gaps)
-    out = out.dropna(subset=[col])
+    # Drop any residual NaNs in the shifted feature (e.g., internal gaps)
+    out = out.dropna(subset=[feature])
 
     return out
+
+df = shift_feature_trim(df, 'Ore', 12)
+df.tail()
 
 # %%
 df_ccf_shifted = shift_feature_trim(df_ccf, 'Ore', 12)
 df_ccf_shifted.tail()
-estimate_lag_ccf(df_ccf_shifted, 'Ore_shift+12', 'PSI200', max_lag=120, detrend_window=30, plot=True)
+estimate_lag_ccf(df_ccf_shifted, 'Ore', 'PSI200', max_lag=120, detrend_window=30, plot=True)
 # %%
