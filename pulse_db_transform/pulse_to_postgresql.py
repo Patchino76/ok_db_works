@@ -31,51 +31,53 @@ class PulseDBTransformer:
         # self.mills = ['Mill06', 'Mill07', 'Mill08', 'Mill09']
         
         # SQL tags dictionary from SQL_Data_Pulse_9.py
+        # Now mapping: feature -> { MillName: TagID }
         self.sql_tags = {
-            'Ore': {"485" : "Mill01", "488" : "Mill02", "491" : "Mill03", "494" : "Mill04", "497" : "Mill05", "500" : "Mill06",
-                    "455" : "Mill07", "467" : "Mill08", "476" : "Mill09", "479" : "Mill10", "482" : "Mill11", "3786" : "Mill12"},
+            'Ore': {"Mill01": "485", "Mill02": "488", "Mill03": "491", "Mill04": "494", "Mill05": "497", "Mill06": "500",
+                    "Mill07": "455", "Mill08": "467", "Mill09": "476", "Mill10": "479", "Mill11": "482", "Mill12": "3786"},
             
-            'WaterMill': {"560" : "Mill01", "580" : "Mill02", "530" : "Mill03", "1227" : "Mill04", "1237" : "Mill05", "1219" : "Mill06",
-                          "461" : "Mill07", "474" : "Mill08", "509" : "Mill09", "517" : "Mill10", "522" : "Mill11", "3790" : "Mill12"},
+            'WaterMill': {"Mill01": "560", "Mill02": "580", "Mill03": "530", "Mill04": "1227", "Mill05": "1237", "Mill06": "1219",
+                          "Mill07": "461", "Mill08": "474", "Mill09": "509", "Mill10": "517", "Mill11": "522", "Mill12": "3790"},
             
-            'WaterZumpf': {"561" : "Mill01", "581" : "Mill02", "531" : "Mill03", "1228" : "Mill04", "1238" : "Mill05", "1220" : "Mill06",
-                            "462" : "Mill07", "475" : "Mill08", "510" : "Mill09", "518" : "Mill10", "523" : "Mill11", "3792" : "Mill12"},
+            'WaterZumpf': {"Mill01": "561", "Mill02": "581", "Mill03": "531", "Mill04": "1228", "Mill05": "1238", "Mill06": "1220",
+                            "Mill07": "462", "Mill08": "475", "Mill09": "510", "Mill10": "518", "Mill11": "523", "Mill12": "3792"},
             
-            'Power': {"487" : "Mill01", "490" : "Mill02", "493" : "Mill03", "496" : "Mill04", "499" : "Mill05", "502" : "Mill06",
-                            "460" : "Mill07", "471" : "Mill08", "478" : "Mill09", "481" : "Mill10", "483" : "Mill11", "3773" : "Mill12"},
+            'Power': {"Mill01": "487", "Mill02": "490", "Mill03": "493", "Mill04": "496", "Mill05": "499", "Mill06": "502",
+                            "Mill07": "460", "Mill08": "471", "Mill09": "478", "Mill10": "481", "Mill11": "483", "Mill12": "3773"},
             
-            'ZumpfLevel': {"486" : "Mill01", "489" : "Mill02", "492" : "Mill03", "495" : "Mill04", "498" : "Mill05", "501" : "Mill06",
-                            "458" : "Mill07", "470" : "Mill08", "477" : "Mill09", "480" : "Mill10", "484" : "Mill11", "3747" : "Mill12"},
+            'ZumpfLevel': {"Mill01": "486", "Mill02": "489", "Mill03": "492", "Mill04": "495", "Mill05": "498", "Mill06": "501",
+                            "Mill07": "458", "Mill08": "470", "Mill09": "477", "Mill10": "480", "Mill11": "484", "Mill12": "3747"},
             
-            'PressureHC': {"558" : "Mill01", "578" : "Mill02", "528" : "Mill03", "1225" : "Mill04", "1235" : "Mill05", "1217" : "Mill06",
-                            "459" : "Mill07", "472" : "Mill08", "507" : "Mill09", "515" : "Mill10", "2687" : "Mill11", "3774" : "Mill12"},
+            'PressureHC': {"Mill01": "558", "Mill02": "578", "Mill03": "528", "Mill04": "1225", "Mill05": "1235", "Mill06": "1217",
+                            "Mill07": "459", "Mill08": "472", "Mill09": "507", "Mill10": "515", "Mill11": "2687", "Mill12": "3774"},
             
-            'DensityHC': {"557" : "Mill01", "577" : "Mill02", "527" : "Mill03", "1224" : "Mill04", "1234" : "Mill05", "1216" : "Mill06",
-                            "457" : "Mill07", "469" : "Mill08", "506" : "Mill09", "514" : "Mill10", "2658" : "Mill11", "3742" : "Mill12"},
+            'DensityHC': {"Mill01": "557", "Mill02": "577", "Mill03": "527", "Mill04": "1224", "Mill05": "1234", "Mill06": "1216",
+                            "Mill07": "457", "Mill08": "469", "Mill09": "506", "Mill10": "514", "Mill11": "2658", "Mill12": "3742"},
             
-            # 'PulpHC_old': {"559" : "Mill01", "579" : "Mill02", "529" : "Mill03", "1226" : "Mill04", "1236" : "Mill05", "1218" : "Mill06",
-            #                 "3640" : "Mill07", "1000" : "Mill08", "508" : "Mill09", "516" : "Mill10", "2691" : "Mill11", "3788" : "Mill12"},
-            'PulpHC': {"2386" : "Mill01", "2160" : "Mill02", "2609" : "Mill03", "2726" : "Mill04", "2217" : "Mill05", "2777" : "Mill06",
-                            "2837" : "Mill07", "1833" : "Mill08", "2485" : "Mill09", "2434" : "Mill10", "2670" : "Mill11", "3755" : "Mill12"},
+            'FE': {"Mill01": "1762", "Mill02": "1762", "Mill03": "1762", "Mill04": "1762", "Mill05": "1762", "Mill06": "1762",
+                            "Mill07": "1762", "Mill08": "1762", "Mill09": "1762", "Mill10": "1762", "Mill11": "1762", "Mill12": "1762"},
 
-            'PumpRPM': {"2405" : "Mill01", "2198" : "Mill02", "2629" : "Mill03", "2745" : "Mill04", "1652" : "Mill05", "2796" : "Mill06",
-                            "2856" : "Mill07", "1800" : "Mill08", "2471" : "Mill09", "2452" : "Mill10", "2690" : "Mill11", "3780" : "Mill12"},
+            'PulpHC': {"Mill01": "2386", "Mill02": "2160", "Mill03": "2609", "Mill04": "2726", "Mill05": "2217", "Mill06": "2777",
+                            "Mill07": "2837", "Mill08": "1833", "Mill09": "2485", "Mill10": "2434", "Mill11": "2670", "Mill12": "3755"},
 
-            'MotorAmp': {"2379" : "Mill01", "2153" : "Mill02", "2602" : "Mill03", "2719" : "Mill04", "2210" : "Mill05", "2770" : "Mill06",
-                            "2830" : "Mill07", "1805" : "Mill08", "2478" : "Mill09", "2427" : "Mill10", "2663" : "Mill11", "3748" : "Mill12"},
+            'PumpRPM': {"Mill01": "2405", "Mill02": "2198", "Mill03": "2629", "Mill04": "2745", "Mill05": "1652", "Mill06": "2796",
+                            "Mill07": "2856", "Mill08": "1800", "Mill09": "2471", "Mill10": "2452", "Mill11": "2690", "Mill12": "3780"},
 
-            'PSI80': {"2379" : "Mill01", "2153" : "Mill02", "2602" : "Mill03", "2719" : "Mill04", "2210" : "Mill05", "5329" : "Mill06",
-                            "5331" : "Mill07", "5332" : "Mill08", "2478" : "Mill09", "2427" : "Mill10", "2663" : "Mill11", "3748" : "Mill12"},
+            'MotorAmp': {"Mill01": "2379", "Mill02": "2153", "Mill03": "2602", "Mill04": "2719", "Mill05": "2210", "Mill06": "2770",
+                            "Mill07": "2830", "Mill08": "1805", "Mill09": "2478", "Mill10": "2427", "Mill11": "2663", "Mill12": "3748"},
+
+            'PSI80': {"Mill01": "2379", "Mill02": "2153", "Mill03": "2602", "Mill04": "2719", "Mill05": "2210", "Mill06": "5329",
+                            "Mill07": "5331", "Mill08": "5332", "Mill09": "2478", "Mill10": "2427", "Mill11": "2663", "Mill12": "3748"},
             
-            'PSI200': {"2379" : "Mill01", "2153" : "Mill02", "2602" : "Mill03", "2719" : "Mill04", "2210" : "Mill05", "5328" : "Mill06",
-                            "5330" : "Mill07", "5333" : "Mill08", "2478" : "Mill09", "2427" : "Mill10", "2663" : "Mill11", "3748" : "Mill12"},
+            'PSI200': {"Mill01": "2379", "Mill02": "2153", "Mill03": "2602", "Mill04": "2719", "Mill05": "2210", "Mill06": "5328",
+                            "Mill07": "5330", "Mill08": "5333", "Mill09": "2478", "Mill10": "2427", "Mill11": "2663", "Mill12": "3748"},
 
-            # 'CIDRA200': {"2875" : "Mill01", "2876" : "Mill02", "2877" : "Mill03", "2878" : "Mill04", "2879" : "Mill05", "2880" : "Mill06",
-            #                 "2881" : "Mill07", "2882" : "Mill08", "2883" : "Mill09", "2884" : "Mill10", "2885" : "Mill11", "3775" : "Mill12"}
+            # 'CIDRA200': {"Mill01": "2875", "Mill02": "2876", "Mill03": "2877", "Mill04": "2878", "Mill05": "2879", "Mill06": "2880",
+            #                 "Mill07": "2881", "Mill08": "2882", "Mill09": "2883", "Mill10": "2884", "Mill11": "2885", "Mill12": "3775"}
         }
         
         # Table names from SQL Server
-        self.table_names = ['LoggerValues', 'LoggerValues_Archive_Jun2025']
+        self.table_names = ['LoggerValues', 'LoggerValues_Archive_Jul2025', 'LoggerValues_Archive_Jun2025']
 
         # self.table_names = ['LoggerValues', 
         #         'LoggerValues_Archive_Jan2025', 'LoggerValues_Archive_Dec2024', 
@@ -97,8 +99,9 @@ class PulseDBTransformer:
         # Get current time in UTC
         current_time = datetime.utcnow()
         
-        # Get the tags we're interested in
-        tag_conditions = " OR ".join([f"LoggerTagID = {tag_id}" for tag_id in self.sql_tags[feature].keys()])
+        # Get the tag IDs we're interested in (now values())
+        tag_ids = list(self.sql_tags[feature].values())
+        tag_conditions = " OR ".join([f"LoggerTagID = {tag_id}" for tag_id in tag_ids])
         
         # Build the WHERE clause
         where_clauses = [f"({tag_conditions})"]
@@ -152,8 +155,9 @@ class PulseDBTransformer:
         df = df.ffill().bfill()  # Using newer pandas methods
         df = df.resample("1min").mean()
         
-        # Rename columns to mill names
-        df.columns = [self.sql_tags[feature][str(k)] for k in df.columns if str(k) in self.sql_tags[feature]]
+        # Rename columns to mill names using a reverse map: tag_id -> mill
+        reverse_map = {str(tag): mill for mill, tag in self.sql_tags[feature].items()}
+        df.columns = [reverse_map[str(k)] for k in df.columns if str(k) in reverse_map]
         df.index.names = ['TimeStamp']
         df.sort_index(axis=1, inplace=True)
         
@@ -181,6 +185,18 @@ class PulseDBTransformer:
         for feature in self.sql_tags.keys():
             print(f"Processing {feature} for {mill}")
             feature_df = self.compose_feature(feature)
+            # FE is a global feature shared across all mills (single tag). After pivot it
+            # will appear as a single column (renamed unpredictably due to duplicate tag mapping).
+            # Handle FE specially: take the single series and use it for every mill.
+            if feature == 'FE' and not feature_df.empty:
+                feature_series = feature_df.iloc[:, 0]
+                if common_index is None:
+                    common_index = feature_series.index
+                else:
+                    common_index = common_index.intersection(feature_series.index)
+                all_data.append((feature, feature_series))
+                continue
+
             if mill in feature_df.columns:
                 feature_series = feature_df[mill]
                 if common_index is None:
