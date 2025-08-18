@@ -21,6 +21,7 @@ parameters = [
     'ZumpfLevel',
     'PressureHC',
     'DensityHC',
+    'FE',
     'PulpHC',
     'PumpRPM',
     'MotorAmp',
@@ -36,7 +37,7 @@ parameters = [
 #%% Load and prepare the data
 # Load the combined mill data
 base_dir = Path(__file__).resolve().parents[1]  # .../model_testings
-file_path = base_dir / 'data' / 'combined_data_mill7.csv'
+file_path = base_dir / 'data' / 'combined_data_mill8.csv'
 df = pd.read_csv(file_path, parse_dates=['TimeStamp'], index_col='TimeStamp')
 # First filter the DataFrame with the original parameters
 df = df[parameters].copy()
@@ -250,7 +251,7 @@ print("\nGenerating scatter plot matrix of parameters...")
 
 # Select a subset of features for visualization to avoid overcrowding
 # Using all features can make the plot too dense
-plot_features = ['Ore', 'WaterMill', 'WaterZumpf', 'DensityHC', 'MotorAmp', 'PSI200']
+plot_features = ['Ore', 'WaterMill', 'WaterZumpf', 'DensityHC','FE', 'PressureHC', 'MotorAmp', 'PSI200']
 plot_df = df[plot_features].copy()
 
 # Create figure with subplots
@@ -334,6 +335,7 @@ features = [
     # 'ZumpfLevel',
     'PressureHC',
     'DensityHC',
+    'FE',
     'PulpHC',
     # 'PumpRPM',
     'MotorAmp',
