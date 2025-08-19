@@ -38,7 +38,7 @@ def load_data():
     """
     # .../model_testings
     base_dir = Path(__file__).resolve().parents[1]
-    file_path = base_dir / 'data' / 'combined_data_mill7.csv'
+    file_path = base_dir / 'data' / 'combined_data_mill8.csv'
 
     # Read CSV with TimeStamp as DateTimeIndex
     df = pd.read_csv(file_path, parse_dates=['TimeStamp'], index_col='TimeStamp')
@@ -49,7 +49,7 @@ def load_data():
 
     # Date range filter (mirror df_analysis-xgb2)
     start_date = pd.Timestamp('2025-06-15 06:00')
-    end_date = pd.Timestamp('2025-08-17 22:00')
+    end_date = pd.Timestamp('2025-08-18 22:00')
     df = df.loc[start_date:end_date].copy()
 
     # Apply basic physical constraints (same as df_analysis-xgb2)
@@ -79,7 +79,7 @@ def load_data():
 # %%
 
 df = load_data()
-binned_df, bin_info = smart_binning(df, n_bins=20, method='kmeans', target_col='PSI200')
+binned_df, bin_info = smart_binning(df, n_bins=40, method='kmeans', target_col='PSI80')
 
 # Analyze binning quality
 analyze_binning_quality(df, binned_df, bin_info)
