@@ -26,9 +26,9 @@ class PulseDBTransformer:
         self.pg_engine = create_engine(f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_dbname}")
         
         # Mill names and sensor tags
-        self.mills = ['Mill01', 'Mill02', 'Mill03', 'Mill04', 'Mill05', 'Mill06',
-                     'Mill07', 'Mill08', 'Mill09', 'Mill10', 'Mill11', 'Mill12']
-        # self.mills = ['Mill06', 'Mill07', 'Mill08', 'Mill09']
+        # self.mills = ['Mill01', 'Mill02', 'Mill03', 'Mill04', 'Mill05', 'Mill06',
+        #              'Mill07', 'Mill08', 'Mill09', 'Mill10', 'Mill11', 'Mill12']
+        self.mills = ['Mill06', 'Mill07', 'Mill08']
         
         # SQL tags dictionary from SQL_Data_Pulse_9.py
         # Now mapping: feature -> { MillName: TagID }
@@ -76,7 +76,7 @@ class PulseDBTransformer:
             #                 "Mill07": "2881", "Mill08": "2882", "Mill09": "2883", "Mill10": "2884", "Mill11": "2885", "Mill12": "3775"}
         }
         
-        # Table names from SQL Server
+        # Table names from SQL Server - only tables needed for June 2025 onwards
         self.table_names = ['LoggerValues', 'LoggerValues_Archive_Jul2025', 'LoggerValues_Archive_Jun2025']
 
         # self.table_names = ['LoggerValues', 
@@ -114,27 +114,34 @@ class PulseDBTransformer:
                 where_clauses.append(f"IndexTime > '{since_str}'")
                 print(f"  - Filtering data after: {since_str}")
             else:
-                # If not in append mode and not creating new table, still limit to last 24 hours
-                default_start_time = (current_time - timedelta(hours=24)).strftime('%Y-%m-%d %H:%M:%S')
+                # If not in append mode and not creating new table, limit to last 7 days instead of 24 hours
+                # This helps capture more data during recovery operations
+                default_start_time = (current_time - timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
                 where_clauses.append(f"IndexTime >= '{default_start_time}'")
-                print(f"  - Limiting to last 24 hours (since {default_start_time})")
+                print(f"  - Limiting to last 7 days (since {default_start_time})")
         else:
             print(f"  - Creating new table: fetching ALL available data from {table_name}")
         
-        # Add a limit to prevent excessive data loading (but make it larger for new tables)
-        if self.creating_new_table:
-            limit_clause = "TOP 1000000"  # 1M rows for new tables
-        else:
-            limit_clause = "TOP 100000"   # 100K rows for updates
-        
-        # Build the final query
+        # Build the final query - ORDER BY ASC to get chronological data
+        # Remove TOP limit when creating new tables to ensure all data is captured
         where_clause = " AND ".join(where_clauses) if where_clauses else "1=1"
-        query_str = f"""
-        SELECT {limit_clause} IndexTime, LoggerTagID, Value 
-        FROM {table_name} 
-        WHERE {where_clause}
-        ORDER BY IndexTime DESC
-        """
+        
+        if self.creating_new_table:
+            # No limit for new tables to ensure complete data capture
+            query_str = f"""
+            SELECT IndexTime, LoggerTagID, Value 
+            FROM {table_name} 
+            WHERE {where_clause}
+            ORDER BY IndexTime ASC
+            """
+        else:
+            # For updates, still use a reasonable limit but order chronologically
+            query_str = f"""
+            SELECT TOP 500000 IndexTime, LoggerTagID, Value 
+            FROM {table_name} 
+            WHERE {where_clause}
+            ORDER BY IndexTime ASC
+            """
         
         # Log the query for debugging (without the actual values for security)
         print(f"  - Executing query on {table_name} for {feature}")
@@ -293,10 +300,11 @@ class PulseDBTransformer:
                         latest_dt = pd.to_datetime(latest_ts) if not isinstance(latest_ts, datetime) else latest_ts
                         
                         # Set filter to get only new data (with buffer for timezone shifts)
-                        self.filter_timestamp = latest_dt - pd.Timedelta('2.5 hours')
+                        # Increase buffer to 6 hours to handle potential gaps
+                        self.filter_timestamp = latest_dt - pd.Timedelta('6 hours')
                         self.creating_new_table = False  # We're updating existing table
                         print(f"  ⏱️  Last record in DB: {latest_dt}")
-                        print(f"  🔍 Fetching data after: {self.filter_timestamp}")
+                        print(f"  🔍 Fetching data after: {self.filter_timestamp} (6-hour buffer)")
                         
                         # Get new data
                         mill_df = self.create_mill_dataframe(mill)

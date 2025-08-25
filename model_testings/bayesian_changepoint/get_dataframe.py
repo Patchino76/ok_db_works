@@ -51,7 +51,7 @@ def load_data(resample: str | None = None):
 
     # Date range filter (mirror df_analysis-xgb2)
     start_date = pd.Timestamp('2025-06-15 06:00')
-    end_date = pd.Timestamp('2025-08-18 22:00')
+    end_date = pd.Timestamp('2025-08-24 22:00')
     df = df.loc[start_date:end_date].copy()
 
     # Optional resampling to smooth noise and speed up algorithms
