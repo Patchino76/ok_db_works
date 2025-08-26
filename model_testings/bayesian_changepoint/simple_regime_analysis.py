@@ -11,8 +11,8 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Configuration
-TARGET_FEATURES = ['Ore', 'WaterMill', 'WaterZumpf', 'PulpHC', 'PumpRPM', 'MotorAmp', 'PSI200']
-MIN_REGIME_DURATION = 180  # 3 hours in minutes
+TARGET_FEATURES = ['PSI200']
+MIN_REGIME_DURATION = 360  # 3 hours in minutes
 RESAMPLE_FREQ = '5T'
 
 class SimpleRegimeAnalyzer:

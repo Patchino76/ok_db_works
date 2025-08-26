@@ -1,0 +1,32 @@
+{
+  "total_samples": 11543,
+  "train_samples": 9588,
+  "test_samples": 1955,
+  "test_size": 0.2,
+  "random_state": 42,
+  "features": [
+    "Ore",
+    "WaterMill",
+    "WaterZumpf",
+    "Power",
+    "ZumpfLevel",
+    "PressureHC",
+    "DensityHC",
+    "FE",
+    "PulpHC",
+    "PumpRPM",
+    "MotorAmp",
+    "PSI200",
+    "Class_15",
+    "Class_12",
+    "Grano",
+    "Daiki",
+    "Shisti",
+    "regime_id",
+    "regime_mean",
+    "regime_std",
+    "regime_duration"
+  ],
+  "regimes_count": 77,
+  "date_range": "2025-06-21 16:50:00 to 2025-08-23 22:00:00"
+}

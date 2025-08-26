@@ -40,7 +40,7 @@ def load_data(resample: str | None = None):
     """
     # .../model_testings
     base_dir = Path(__file__).resolve().parents[1]
-    file_path = base_dir / 'data' / 'combined_data_mill6.csv'
+    file_path = base_dir / 'data' / 'combined_data_mill7.csv'
 
     # Read CSV with TimeStamp as DateTimeIndex
     df = pd.read_csv(file_path, parse_dates=['TimeStamp'], index_col='TimeStamp')
@@ -50,7 +50,7 @@ def load_data(resample: str | None = None):
     df = df[keep_cols].copy()
 
     # Date range filter (mirror df_analysis-xgb2)
-    start_date = pd.Timestamp('2025-06-15 06:00')
+    start_date = pd.Timestamp('2025-06-21 06:00')
     end_date = pd.Timestamp('2025-08-24 22:00')
     df = df.loc[start_date:end_date].copy()
 
@@ -61,12 +61,12 @@ def load_data(resample: str | None = None):
 
     # Apply basic physical constraints (same as df_analysis-xgb2)
     df = df[
-        (df['Ore'].between(150, 200)) &
-        (df['PSI200'].between(15, 35)) &
-        (df['WaterMill'].between(5, 20)) &
-        (df['WaterZumpf'].between(140, 250)) &
-        (df['DensityHC'].between(1500, 1800)) &
-        (df['MotorAmp'].between(170, 220))
+        # (df['Ore'].between(150, 200)) &
+        (df['PSI200'].between(15, 35)) 
+        # (df['WaterMill'].between(5, 20)) &
+        # (df['WaterZumpf'].between(140, 250)) &
+        # (df['DensityHC'].between(1500, 1800)) &
+        # (df['MotorAmp'].between(170, 220))
     ].copy()
 
     return df
