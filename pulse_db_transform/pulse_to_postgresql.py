@@ -26,9 +26,9 @@ class PulseDBTransformer:
         self.pg_engine = create_engine(f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_dbname}")
         
         # Mill names and sensor tags
-        # self.mills = ['Mill01', 'Mill02', 'Mill03', 'Mill04', 'Mill05', 'Mill06',
-        #              'Mill07', 'Mill08', 'Mill09', 'Mill10', 'Mill11', 'Mill12']
-        self.mills = ['Mill06', 'Mill07', 'Mill08']
+        self.mills = ['Mill01', 'Mill02', 'Mill03', 'Mill04', 'Mill05', 'Mill06',
+                     'Mill07', 'Mill08', 'Mill09', 'Mill10', 'Mill11', 'Mill12']
+        # self.mills = ['Mill06', 'Mill07', 'Mill08']
         
         # SQL tags dictionary from SQL_Data_Pulse_9.py
         # Now mapping: feature -> { MillName: TagID }
@@ -77,7 +77,12 @@ class PulseDBTransformer:
         }
         
         # Table names from SQL Server - only tables needed for June 2025 onwards
-        self.table_names = ['LoggerValues', 'LoggerValues_Archive_Jul2025', 'LoggerValues_Archive_Jun2025']
+        self.table_names = ['LoggerValues', 'LoggerValues_Archive_Sep2025', 
+                            'LoggerValues_Archive_Aug2025','LoggerValues_Archive_Jul2025', 
+                            'LoggerValues_Archive_Jun2025',
+                            'LoggerValues_Archive_May2025', 'LoggerValues_Archive_Apr2025',  
+                            'LoggerValues_Archive_Mar2025', 'LoggerValues_Archive_Feb2025',
+                            'LoggerValues_Archive_Jan2025']
 
         # self.table_names = ['LoggerValues', 
         #         'LoggerValues_Archive_Jan2025', 'LoggerValues_Archive_Dec2024', 
