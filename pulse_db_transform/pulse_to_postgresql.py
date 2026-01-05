@@ -78,7 +78,8 @@ class PulseDBTransformer:
         
         # Table names from SQL Server - only tables needed for June 2025 onwards
         self.table_names = ['LoggerValues',
-                            'LoggerValues_Archive_Oct2025', 'LoggerValues_Archive_Sep2025', 
+                            'LoggerValues_Archive_Dec2025', 'LoggerValues_Archive_Nov2025',
+                            'LoggerValues_Archive_Oct2025', 'LoggerValues_Archive_Sep2025',
                             'LoggerValues_Archive_Aug2025','LoggerValues_Archive_Jul2025', 
                             'LoggerValues_Archive_Jun2025',
                             'LoggerValues_Archive_May2025', 'LoggerValues_Archive_Apr2025',  
@@ -141,12 +142,13 @@ class PulseDBTransformer:
             ORDER BY IndexTime ASC
             """
         else:
-            # For updates, still use a reasonable limit but order chronologically
+            # For updates, order by DESC to get NEWEST data first (TOP limit would cut off recent data with ASC)
+            # We'll sort chronologically after fetching
             query_str = f"""
             SELECT TOP 500000 IndexTime, LoggerTagID, Value 
             FROM {table_name} 
             WHERE {where_clause}
-            ORDER BY IndexTime ASC
+            ORDER BY IndexTime DESC
             """
         
         # Log the query for debugging (without the actual values for security)
@@ -193,21 +195,25 @@ class PulseDBTransformer:
     def create_mill_dataframe(self, mill):
         """Create a dataframe for a specific mill with all features"""
         all_data = []
+        optional_data = []  # Features that should NOT limit common_index (e.g., FE with sparse data)
         common_index = None
+        
+        # Features that should not participate in common_index intersection
+        # These will be forward-filled to match the common_index from other features
+        optional_features = {'FE'}
         
         for feature in self.sql_tags.keys():
             print(f"Processing {feature} for {mill}")
             feature_df = self.compose_feature(feature)
+            
             # FE is a global feature shared across all mills (single tag). After pivot it
             # will appear as a single column (renamed unpredictably due to duplicate tag mapping).
             # Handle FE specially: take the single series and use it for every mill.
+            # NOTE: FE is optional and should NOT limit the common_index intersection
             if feature == 'FE' and not feature_df.empty:
                 feature_series = feature_df.iloc[:, 0]
-                if common_index is None:
-                    common_index = feature_series.index
-                else:
-                    common_index = common_index.intersection(feature_series.index)
-                all_data.append((feature, feature_series))
+                optional_data.append((feature, feature_series))
+                print(f"  -> FE is optional, not included in common_index (has {len(feature_series)} rows)")
                 continue
 
             if mill in feature_df.columns:
@@ -218,10 +224,22 @@ class PulseDBTransformer:
                     common_index = common_index.intersection(feature_series.index)
                 all_data.append((feature, feature_series))
         
+        if common_index is None or len(common_index) == 0:
+            print(f"  ⚠️ No common index found for {mill}")
+            return pd.DataFrame()
+        
+        print(f"  📊 Common index: {len(common_index)} rows, range: {common_index.min()} to {common_index.max()}")
+        
         # Create dataframe with aligned index
         mill_df = pd.DataFrame(index=common_index)
         for feature, series in all_data:
             mill_df[feature] = series.reindex(common_index)
+        
+        # Add optional features (reindex and forward-fill)
+        for feature, series in optional_data:
+            mill_df[feature] = series.reindex(common_index).ffill().bfill()
+            non_null = mill_df[feature].notna().sum()
+            print(f"  -> Added optional feature {feature}: {non_null}/{len(common_index)} non-null values")
         
         return mill_df
     

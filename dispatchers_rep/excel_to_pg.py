@@ -63,13 +63,42 @@ class ExcelToPGConverter:
             print(f"Error connecting to PostgreSQL: {e}")
             return None
     
-    def create_table_from_dataframe(self, df):
+    def table_exists(self):
         """
-        Drop existing table and create a new one based on DataFrame columns.
-        This ensures the table structure perfectly matches our data.
+        Check if the ore_quality table exists.
+        
+        Returns:
+            bool: True if table exists, False otherwise
+        """
+        conn = self.connect_to_postgresql()
+        if not conn:
+            return False
+        
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_schema = 'mills' 
+                    AND table_name = 'ore_quality'
+                );
+            """)
+            exists = cursor.fetchone()[0]
+            return exists
+        except Exception as e:
+            print(f"Error checking table existence: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
+    
+    def create_table_from_dataframe(self, df, drop_existing=True):
+        """
+        Create table based on DataFrame columns.
         
         Args:
             df (pandas.DataFrame): DataFrame with processed data
+            drop_existing (bool): If True, drop existing table first. If False, only create if not exists.
             
         Returns:
             bool: True if successful, False otherwise
@@ -84,11 +113,24 @@ class ExcelToPGConverter:
             # Start a transaction
             conn.autocommit = False
             
-            # Drop the table if it exists (with schema)
-            print("Dropping existing ore_quality table if exists...")
-            cursor.execute("DROP TABLE IF EXISTS mills.ore_quality CASCADE;")
-            conn.commit()
-            print("Table dropped successfully")
+            # Drop the table if requested
+            if drop_existing:
+                print("Dropping existing ore_quality table if exists...")
+                cursor.execute("DROP TABLE IF EXISTS mills.ore_quality CASCADE;")
+                conn.commit()
+                print("Table dropped successfully")
+            else:
+                # Check if table already exists
+                cursor.execute("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_schema = 'mills' 
+                        AND table_name = 'ore_quality'
+                    );
+                """)
+                if cursor.fetchone()[0]:
+                    print("Table already exists, skipping creation")
+                    return True
             
             # Create new table with columns derived from the DataFrame
             print("Creating new ore_quality table based on DataFrame structure...")
@@ -150,12 +192,13 @@ class ExcelToPGConverter:
             if conn:
                 conn.close()
                 
-    def process_excel_to_pg(self, input_excel):
+    def process_excel_to_pg(self, input_excel, append_mode=False):
         """
         Process Excel file and insert data into PostgreSQL.
         
         Args:
             input_excel (str): Path to the input Excel file
+            append_mode (bool): If True, append to existing table. If False, recreate table.
         
         Returns:
             bool: True if successful, False otherwise
@@ -360,7 +403,7 @@ class ExcelToPGConverter:
         print("Reordered DataFrame columns:", result_df.columns.tolist())
         
         # First create/recreate the table based on the DataFrame structure
-        if not self.create_table_from_dataframe(result_df):
+        if not self.create_table_from_dataframe(result_df, drop_existing=not append_mode):
             print("Failed to create or update table structure")
             return False
             
