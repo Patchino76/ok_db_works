@@ -247,7 +247,7 @@ class ExcelToPGConverter:
                 'Май': 5, 'Юни': 6, 'Юли': 7, 'Август': 8,
                 'Септември': 9, 'Октомври': 10, 'Ноември': 11, 'Декември': 12
             }
-            month = month_mapping.get(sheet_name, datetime.now().month)
+            month = month_mapping.get(sheet_name.strip(), datetime.now().month)
             print(f"Sheet '{sheet_name}' corresponds to month {month}")
             
             # Find column indices
