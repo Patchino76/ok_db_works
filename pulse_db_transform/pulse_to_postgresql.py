@@ -86,15 +86,7 @@ class PulseDBTransformer:
                             'LoggerValues_Archive_Mar2025', 'LoggerValues_Archive_Feb2025',
                             'LoggerValues_Archive_Jan2025']
 
-        # self.table_names = ['LoggerValues', 
-        #         'LoggerValues_Archive_Jan2025', 'LoggerValues_Archive_Dec2024', 
-        #         'LoggerValues_Archive_Nov2024', 'LoggerValues_Archive_Oct2024',
-        #         'LoggerValues_Archive_Sep2024', 'LoggerValues_Archive_Aug2024',
-        #         'LoggerValues_Archive_Jul2024', 'LoggerValues_Archive_Jun2024',
-        #         'LoggerValues_Archive_May2024', 'LoggerValues_Archive_Apr2024',  
-        #         'LoggerValues_Archive_Mar2024', 'LoggerValues_Archive_Feb2024',
-        #         'LoggerValues_Archive_Jan2024',
-        #         ]
+   
         
         # Initialize timestamp filter to None (get all data)
         self.filter_timestamp = None
