@@ -78,6 +78,11 @@ class PulseDBTransformer:
         
         # Table names from SQL Server - only tables needed for June 2025 onwards
         self.table_names = ['LoggerValues',
+                            'LoggerValues_Archive_Sep2026', 'LoggerValues_Archive_Aug2026',
+                            'LoggerValues_Archive_Jul2026', 'LoggerValues_Archive_Jun2026',
+                            'LoggerValues_Archive_May2026', 'LoggerValues_Archive_Apr2026',
+                            'LoggerValues_Archive_Mar2026', 'LoggerValues_Archive_Feb2026',
+                            'LoggerValues_Archive_Jan2026',
                             'LoggerValues_Archive_Dec2025', 'LoggerValues_Archive_Nov2025',
                             'LoggerValues_Archive_Oct2025', 'LoggerValues_Archive_Sep2025',
                             'LoggerValues_Archive_Aug2025','LoggerValues_Archive_Jul2025', 
