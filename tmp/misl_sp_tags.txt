@@ -1,0 +1,16 @@
+MILLS SETPOINTS
+
+mill06:
+ore 2775
+mill water 2787
+zumpf water 2790
+
+mill07:
+ore 2835
+mill water 2847
+zumpf water 2850
+
+mill08:
+ore 1823
+mill water 1817
+zumpf water 1820
