@@ -19,6 +19,12 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
+from pulse_config import (
+    PULSE_SERVER, PULSE_DATABASE, PULSE_USER, PULSE_PASSWORD,
+    PG_HOST, PG_PORT, PG_DBNAME, PG_USER, PG_PASSWORD,
+    create_pulse_engine,
+)
+
 ROOT = Path(__file__).resolve().parent
 TAG_CSV = ROOT / 'vhs_tags.csv'
 
@@ -37,18 +43,18 @@ TABLE_NAME = 'VHS_TAGS'
 
 
 class VHSTransformer:
-    def __init__(self, pg_host='localhost', pg_port=5432, pg_dbname='em_pulse_data',
-                 pg_user='postgres', pg_password='postgres'):
+    def __init__(self, pg_host=PG_HOST, pg_port=PG_PORT, pg_dbname=PG_DBNAME,
+                 pg_user=PG_USER, pg_password=PG_PASSWORD, engine=None, pg_engine=None):
         # SQL Server (Pulse) connection parameters
-        self.server = '10.20.2.10'
-        self.database = 'pulse'
-        self.username = 'Pulse_RO'
-        self.password = 'PD@T@r3@der'
+        self.server = PULSE_SERVER
+        self.database = PULSE_DATABASE
+        self.username = PULSE_USER
+        self.password = PULSE_PASSWORD
         self.connection_string = (
             f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.server};"
             f"DATABASE={self.database};UID={self.username};PWD={self.password}"
         )
-        self.engine = create_engine("mssql+pyodbc:///?odbc_connect=" + self.connection_string)
+        self.engine = engine if engine is not None else create_pulse_engine()
 
         # PostgreSQL (target) connection parameters
         self.pg_host = pg_host
@@ -56,7 +62,7 @@ class VHSTransformer:
         self.pg_dbname = pg_dbname
         self.pg_user = pg_user
         self.pg_password = pg_password
-        self.pg_engine = create_engine(
+        self.pg_engine = pg_engine if pg_engine is not None else create_engine(
             f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_dbname}"
         )
 
@@ -149,6 +155,8 @@ class VHSTransformer:
         df = pd.concat(frames)
         df = df.sort_index()
         df = df[~df.index.duplicated(keep='last')]
+        # Същото +2h отместване като при мелниците (SQL времената са в централна зона)
+        df = df.shift(2, freq='h')
         return self._finalize(df, seed=seed)
 
     def _finalize(self, df, seed=None):
